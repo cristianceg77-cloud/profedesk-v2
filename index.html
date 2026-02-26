@@ -1433,6 +1433,9 @@ function renderHistorial(){
       return`<th style="text-align:center;min-width:80px;">
         <div>${fmtFecha(f)}</div>
         ${t.titulo?`<div style="font-size:.62rem;color:var(--gold);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;" title="${t.titulo}${t.descripcion?' — '+t.descripcion:''}">📖 ${t.titulo}</div>`:''}
+        <button onclick="eliminarFechaAsist('${prefix}','${f}')" title="Eliminar este día"
+          style="margin-top:.25rem;background:none;border:1px solid rgba(192,57,43,.4);color:var(--accent);border-radius:4px;font-size:.6rem;padding:.1rem .3rem;cursor:pointer;display:block;margin-left:auto;margin-right:auto;"
+          onmouseover="this.style.background='rgba(192,57,43,.12)'" onmouseout="this.style.background='none'">🗑️ borrar día</button>
       </th>`;
     }).join('')}
     <th style="text-align:center;">% Asist.</th>
@@ -1460,6 +1463,28 @@ function renderHistorial(){
 // ══════════════════════
 // EXPORTAR CSV historial completo
 // ══════════════════════
+function eliminarFechaAsist(prefix, fecha){
+  if(!confirm(`¿Eliminar el registro de asistencia del ${fmtFecha(fecha)}?\n\nEsto borrará los datos de todos los alumnos de ese día y no se puede deshacer.`)) return;
+  const key = prefix + fecha;
+  delete state.asistencia[key];
+  delete state.temas[key];
+  saveLS();
+  renderHistorial();
+  showToast('🗑️ Día ' + fmtFecha(fecha) + ' eliminado del historial');
+}
+
+function eliminarFechaSeg(alumnoId, materiaId, fecha){
+  if(!confirm(`¿Eliminar el registro de seguimiento del ${fmtFecha(fecha)} para este alumno?\n\nEsta acción no se puede deshacer.`)) return;
+  if(state.seguimiento[alumnoId]?.[materiaId]?.[fecha]){
+    delete state.seguimiento[alumnoId][materiaId][fecha];
+    saveLS();
+    renderSeguimiento();
+    // Cerrar el modal de detalle
+    document.getElementById('modal-seguimiento').classList.remove('open');
+    showToast('🗑️ Registro del ' + fmtFecha(fecha) + ' eliminado');
+  }
+}
+
 function exportarCSVHistorial(){
   const cursoId=parseInt(document.getElementById('hist-curso').value);
   const materiaId=parseInt(document.getElementById('hist-materia').value);
@@ -1772,6 +1797,9 @@ function abrirDetalleSeg(alumnoId){
       <div style="display:flex;align-items:center;gap:.5rem;margin-top:.25rem;">
         <input type="date" id="seg-det-fecha" value="${fecha}" style="flex:1;">
         <input type="hidden" id="seg-det-materia" value="${materiaId}">
+        <button onclick="eliminarFechaSeg(${alumnoId},${materiaId},'${fecha}')" title="Eliminar este registro de seguimiento"
+          style="background:none;border:1px solid rgba(192,57,43,.4);color:var(--accent);border-radius:6px;padding:.3rem .6rem;font-size:.76rem;cursor:pointer;white-space:nowrap;"
+          onmouseover="this.style.background='rgba(192,57,43,.1)'" onmouseout="this.style.background='none'">🗑️ Borrar este día</button>
       </div>
     </div>
     <div class="det-grid">
