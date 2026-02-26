@@ -3886,6 +3886,24 @@ window.addEventListener('beforeinstallprompt', function(e) {
     <div id="modal-sincro-body"></div>
   </div>
 </div>
+<div class="modal-bg" id="modal-sincro">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title">📱 Sincronizar entre dispositivos</div>
+    <div id="modal-sincro-body"></div>
+  </div>
+</div>
 
+<script>
+  // Registro del Service Worker para soporte Offline y PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('ProfeDesk: Service Worker activo'))
+        .catch(err => console.log('Error al registrar SW', err));
+    });
+  }
+</script>
+</body>
+</html>
 </body>
 </html>
