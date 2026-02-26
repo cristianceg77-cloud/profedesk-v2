@@ -9,7 +9,6 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ProfeDesk">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -3893,17 +3892,5 @@ window.addEventListener('beforeinstallprompt', function(e) {
   </div>
 </div>
 
-<script>
-  // Registro del Service Worker para soporte Offline y PWA
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('ProfeDesk: Service Worker activo'))
-        .catch(err => console.log('Error al registrar SW', err));
-    });
-  }
-</script>
-</body>
-</html>
 </body>
 </html>
