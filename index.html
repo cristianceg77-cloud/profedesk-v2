@@ -1878,12 +1878,118 @@ function toggleDetBtn(ind,val){
 // ══════════════════════════════════════════════════════════════
 let trayTabSelAlumno=null;
 
+function _trayPoblarFiltros(){
+  const escSel = document.getElementById('tray-fil-escuela')?.value||'';
+  const curSel = document.getElementById('tray-fil-curso')?.value||'';
+
+  // Escuelas
+  const selE = document.getElementById('tray-fil-escuela');
+  if(selE){
+    const prev = selE.value;
+    selE.innerHTML = '<option value="">Todas las escuelas</option>' +
+      state.escuelas.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join('');
+    selE.value = prev;
+  }
+
+  // Cursos (filtrados por escuela seleccionada)
+  const selC = document.getElementById('tray-fil-curso');
+  if(selC){
+    const prev = selC.value;
+    const cursos = escSel
+      ? state.cursos.filter(c=>c.escuelaId===parseInt(escSel))
+      : state.cursos;
+    selC.innerHTML = '<option value="">Todos los cursos</option>' +
+      cursos.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+    selC.value = cursos.find(c=>c.id===parseInt(prev)) ? prev : '';
+  }
+
+  // Materias (filtradas por curso seleccionado, o todas del escuela)
+  const selM = document.getElementById('tray-fil-materia');
+  if(selM){
+    const prev = selM.value;
+    let mats = [];
+    const cursoId = parseInt(document.getElementById('tray-fil-curso')?.value||'');
+    if(cursoId){
+      mats = getMateriasDelCurso(cursoId);
+    } else if(escSel){
+      const curIds = state.cursos.filter(c=>c.escuelaId===parseInt(escSel)).map(c=>c.id);
+      const seen = new Set();
+      curIds.forEach(cid => getMateriasDelCurso(cid).forEach(m=>{ if(!seen.has(m.id)){seen.add(m.id);mats.push(m);} }));
+    } else {
+      // todas las materias únicas
+      const seen = new Set();
+      state.cursos.forEach(c => getMateriasDelCurso(c.id).forEach(m=>{ if(!seen.has(m.id)){seen.add(m.id);mats.push(m);} }));
+    }
+    selM.innerHTML = '<option value="">Todas las materias</option>' +
+      mats.map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('');
+    selM.value = mats.find(m=>m.id===parseInt(prev)) ? prev : '';
+  }
+}
+
+function trayFiltroEscuela(){
+  // Al cambiar escuela, resetear curso y materia
+  const selC = document.getElementById('tray-fil-curso');
+  const selM = document.getElementById('tray-fil-materia');
+  if(selC) selC.value = '';
+  if(selM) selM.value = '';
+  _trayPoblarFiltros();
+  renderTrayLista();
+}
+
+function trayFiltroCurso(){
+  // Al cambiar curso, resetear materia
+  const selM = document.getElementById('tray-fil-materia');
+  if(selM) selM.value = '';
+  _trayPoblarFiltros();
+  renderTrayLista();
+}
+
 function renderTrayLista(){
-  const q=(document.getElementById('tray-search')?.value||'').toLowerCase();
-  const lista=document.getElementById('tray-alumno-lista');
-  if(!lista)return;
-  const alumnos=[...state.alumnos].filter(a=>!q||a.nombre.toLowerCase().includes(q)).sort((a,b)=>a.nombre.localeCompare(b.nombre));
-  if(!alumnos.length){lista.innerHTML='<div style="padding:1rem;color:var(--muted);font-size:.84rem;text-align:center;">Sin resultados</div>';return;}
+  _trayPoblarFiltros();
+  const q        = (document.getElementById('tray-search')?.value||'').toLowerCase();
+  const escId    = parseInt(document.getElementById('tray-fil-escuela')?.value||'') || null;
+  const cursoId  = parseInt(document.getElementById('tray-fil-curso')?.value||'')   || null;
+  const materiaId= parseInt(document.getElementById('tray-fil-materia')?.value||'') || null;
+  const lista    = document.getElementById('tray-alumno-lista');
+  const countEl  = document.getElementById('tray-fil-count');
+  if(!lista) return;
+
+  let alumnos = [...state.alumnos];
+
+  // Filtro por escuela
+  if(escId){
+    const curIds = state.cursos.filter(c=>c.escuelaId===escId).map(c=>c.id);
+    alumnos = alumnos.filter(a=>curIds.includes(a.cursoId));
+  }
+  // Filtro por curso
+  if(cursoId) alumnos = alumnos.filter(a=>a.cursoId===cursoId);
+
+  // Filtro por materia: solo alumnos de cursos que tienen esa materia asignada
+  if(materiaId){
+    const curConMateria = Object.entries(state.cursoMaterias)
+      .filter(([,mids])=>mids.includes(materiaId))
+      .map(([cid])=>parseInt(cid));
+    alumnos = alumnos.filter(a=>curConMateria.includes(a.cursoId));
+  }
+
+  // Filtro por texto
+  if(q) alumnos = alumnos.filter(a=>a.nombre.toLowerCase().includes(q));
+
+  alumnos.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+
+  // Contador
+  if(countEl){
+    const total = state.alumnos.length;
+    countEl.textContent = alumnos.length === total
+      ? `${total} alumnos en total`
+      : `${alumnos.length} de ${total} alumnos`;
+  }
+
+  if(!alumnos.length){
+    lista.innerHTML='<div style="padding:1rem;color:var(--muted);font-size:.84rem;text-align:center;">Sin resultados</div>';
+    return;
+  }
+
   lista.innerHTML=alumnos.map(al=>{
     const cur=getCurso(al.cursoId);
     const esc=cur?getEscuela(cur.escuelaId):null;
@@ -3774,12 +3880,39 @@ window.addEventListener('beforeinstallprompt', function(e) {
 <!-- ═══ TRAYECTORIA ═══ -->
 <div class="tab-content" id="tab-trayectoria">
   <div class="section-title" style="margin-bottom:1rem;">👤 Trayectoria estudiantil</div>
+
+  <!-- Filtros + buscador -->
   <div class="card" style="margin-bottom:1rem;padding:.9rem 1.1rem;">
-    <div class="search-wrap" style="margin-bottom:0;">
-      <span class="search-icon">🔍</span>
-      <input type="text" placeholder="Buscar alumno por nombre…" id="tray-search" oninput="renderTrayLista()" style="font-size:.9rem;">
+    <div style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:130px;">
+        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Escuela</label>
+        <select id="tray-fil-escuela" onchange="trayFiltroEscuela()" style="width:100%;">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:130px;">
+        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Curso</label>
+        <select id="tray-fil-curso" onchange="trayFiltroCurso()" style="width:100%;">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:130px;">
+        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Materia</label>
+        <select id="tray-fil-materia" onchange="renderTrayLista()" style="width:100%;">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div style="flex:2;min-width:160px;">
+        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Buscar alumno</label>
+        <div class="search-wrap" style="margin-bottom:0;">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Nombre…" id="tray-search" oninput="renderTrayLista()" style="font-size:.9rem;">
+        </div>
+      </div>
     </div>
+    <div id="tray-fil-count" style="font-size:.75rem;color:var(--muted);margin-top:.5rem;"></div>
   </div>
+
   <div id="tray-tab-layout" style="display:grid;grid-template-columns:260px 1fr;gap:1rem;align-items:start;">
     <div class="card" style="margin:0;padding:0;overflow:hidden;">
       <div id="tray-alumno-lista" style="max-height:75vh;overflow-y:auto;"></div>
