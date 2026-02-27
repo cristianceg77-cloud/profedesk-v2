@@ -670,10 +670,17 @@
 <div class="tab-content" id="tab-alumnos">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
     <div class="section-title" style="margin:0;">Mis alumnos</div>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
       <button class="btn btn-ghost" onclick="descargarPlantilla()">📄 Plantilla CSV</button>
       <button class="btn btn-ghost" onclick="document.getElementById('import-alumnos-input').click()">📥 Importar CSV/Excel</button>
       <input type="file" id="import-alumnos-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="importarAlumnos(event)">
+      <button class="btn btn-ghost" id="btn-sel-multiple" onclick="toggleModoSeleccion()" title="Seleccionar varios para eliminar">☑️ Seleccionar</button>
+      <div id="barra-seleccion" style="display:none;align-items:center;gap:.5rem;">
+        <span id="sel-count" style="font-size:.82rem;color:var(--muted);font-weight:600;">0 seleccionados</span>
+        <button class="btn btn-ghost btn-sm" onclick="seleccionarTodosAlumnos()">Todos</button>
+        <button class="btn btn-sm" style="background:rgba(192,57,43,.15);color:var(--accent);border:1px solid rgba(192,57,43,.35);" onclick="eliminarSeleccionados()">🗑️ Eliminar seleccionados</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleModoSeleccion()">Cancelar</button>
+      </div>
       <button class="btn btn-primary" onclick="openModal('alumno')">+ Nuevo alumno</button>
     </div>
   </div>
@@ -1147,7 +1154,11 @@ function renderTablaAlumnos(){
   if(q)als=als.filter(a=>a.nombre.toLowerCase().includes(q));
   const w=document.getElementById('tabla-alumnos-wrap');
   if(!als.length){w.innerHTML='<div class="empty-state"><div class="big">👤</div><div>Sin alumnos.</div></div>';return;}
-  w.innerHTML=`<table><thead><tr><th>Nombre</th><th>Escuela · Curso</th><th>Materias</th><th>Asist.</th><th></th></tr></thead><tbody>
+  const modoSel=_modoSeleccion;
+  w.innerHTML=`<table><thead><tr>
+    ${modoSel?`<th style="width:36px;text-align:center;"><input type="checkbox" id="chk-todos" onchange="toggleTodosChk(this)" style="cursor:pointer;width:15px;height:15px;"></th>`:''}
+    <th>Nombre</th><th>Escuela · Curso</th><th>Materias</th><th>Asist.</th><th></th>
+  </tr></thead><tbody>
   ${als.map(al=>{
     const c=getCurso(al.cursoId),e=c?getEscuela(c.escuelaId):null,col=e?getColor(e.id):'#888';
     const mats=c?getMateriasDelCurso(c.id):[];
@@ -1162,14 +1173,87 @@ function renderTablaAlumnos(){
         ${p?`→ <span class="nota-badge ${notaClass(parseFloat(p))}">${p}</span>`:''}
       </div>`;
     }).join('');
-    return`<tr>
-      <td><div class="alumno-link" style="display:flex;align-items:center;" onclick="abrirTrayectoria(${al.id})"><div class="avatar" style="background:${col}">${initials(al.nombre)}</div><span class="av-nombre">${al.nombre}</span></div></td>
+    const sel=_seleccionados.has(al.id);
+    return`<tr style="${sel?'background:rgba(74,124,89,.08);':''}" onclick="${modoSel?`toggleChkAlumno(${al.id})`:''}" ${modoSel?'style="cursor:pointer;"':''}>
+      ${modoSel?`<td style="text-align:center;"><input type="checkbox" ${sel?'checked':''} onchange="toggleChkAlumno(${al.id})" onclick="event.stopPropagation()" style="cursor:pointer;width:15px;height:15px;"></td>`:''}
+      <td><div class="alumno-link" style="display:flex;align-items:center;" onclick="${modoSel?`toggleChkAlumno(${al.id})`:`abrirTrayectoria(${al.id})`}"><div class="avatar" style="background:${col}">${initials(al.nombre)}</div><span class="av-nombre">${al.nombre}</span></div></td>
       <td><span style="font-size:.76rem;font-weight:600;color:${col}">${e?e.nombre:'—'}</span> <span style="color:var(--muted);font-size:.76rem;">${c?c.nombre:''}</span></td>
       <td>${matsHtml||'<span style="color:var(--muted);font-size:.8rem;">Sin materias</span>'}</td>
       <td><span style="font-size:.8rem;font-weight:600;color:${typeof pct==='number'&&pct<60?'var(--accent)':'var(--sage)'}">${typeof pct==='number'?pct+'%':pct}</span></td>
-      <td><button class="btn-icon" onclick="editAlumno(${al.id})">✏️</button><button class="btn-icon" onclick="deleteAlumno(${al.id})">🗑️</button></td>
+      <td>${modoSel?'':` <button class="btn-icon" onclick="editAlumno(${al.id})">✏️</button><button class="btn-icon" onclick="deleteAlumno(${al.id})">🗑️</button>`}</td>
     </tr>`;
   }).join('')}</tbody></table>`;
+}
+
+// ══════════════════════
+// SELECCIÓN MÚLTIPLE ALUMNOS
+// ══════════════════════
+let _modoSeleccion = false;
+let _seleccionados = new Set();
+
+function toggleModoSeleccion(){
+  _modoSeleccion = !_modoSeleccion;
+  _seleccionados.clear();
+  const btn = document.getElementById('btn-sel-multiple');
+  const barra = document.getElementById('barra-seleccion');
+  if(_modoSeleccion){
+    btn.style.display = 'none';
+    barra.style.display = 'flex';
+  } else {
+    btn.style.display = '';
+    barra.style.display = 'none';
+  }
+  renderTablaAlumnos();
+}
+
+function toggleChkAlumno(id){
+  if(_seleccionados.has(id)) _seleccionados.delete(id);
+  else _seleccionados.add(id);
+  _actualizarContadorSel();
+  renderTablaAlumnos();
+}
+
+function toggleTodosChk(chk){
+  if(chk.checked) seleccionarTodosAlumnos();
+  else { _seleccionados.clear(); _actualizarContadorSel(); renderTablaAlumnos(); }
+}
+
+function seleccionarTodosAlumnos(){
+  // Selecciona solo los visibles (filtrados)
+  const q=(document.getElementById('search-alumno').value||'').toLowerCase();
+  let als=state.alumnos;
+  if(state.filtroEscuelaAlumnos){
+    const ids=state.cursos.filter(c=>c.escuelaId===state.filtroEscuelaAlumnos).map(c=>c.id);
+    als=als.filter(a=>ids.includes(a.cursoId));
+  }
+  if(q) als=als.filter(a=>a.nombre.toLowerCase().includes(q));
+  als.forEach(a=>_seleccionados.add(a.id));
+  _actualizarContadorSel();
+  renderTablaAlumnos();
+}
+
+function _actualizarContadorSel(){
+  const el=document.getElementById('sel-count');
+  if(el) el.textContent=_seleccionados.size+' seleccionado'+(+_seleccionados.size===1?'':'s');
+}
+
+function eliminarSeleccionados(){
+  if(!_seleccionados.size){showToast('⚠️ No hay alumnos seleccionados');return;}
+  const nombres=state.alumnos.filter(a=>_seleccionados.has(a.id)).map(a=>a.nombre);
+  if(!confirm(`¿Eliminar ${_seleccionados.size} alumno${_seleccionados.size===1?'':'s'}?\n\n${nombres.slice(0,5).join('\n')}${nombres.length>5?'\n…y '+(nombres.length-5)+' más':''}\n\nEsta acción no se puede deshacer.`)) return;
+  // Limpiar datos relacionados
+  _seleccionados.forEach(id=>{
+    state.alumnos=state.alumnos.filter(a=>a.id!==id);
+    delete state.trayectoria[id];
+    delete state.seguimiento[id];
+    // Limpiar asistencia
+    Object.keys(state.asistencia).forEach(k=>{ delete state.asistencia[k][id]; });
+  });
+  const n=_seleccionados.size;
+  _seleccionados.clear();
+  toggleModoSeleccion();
+  saveLS(); renderAll();
+  showToast(`🗑️ ${n} alumno${n===1?'':'s'} eliminado${n===1?'':'s'}`);
 }
 
 // CRUD ALUMNOS
