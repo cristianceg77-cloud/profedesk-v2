@@ -734,6 +734,7 @@
 <div class="tab-content" id="tab-seguimiento">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
     <div class="section-title" style="margin:0;">Seguimiento pedagógico</div>
+    <button class="btn btn-ghost" onclick="abrirGestorFechasSeg()" title="Ver y borrar fechas registradas">🗂️ Gestionar fechas</button>
     <button class="btn btn-ghost" onclick="exportarCSVSeguimiento()">⬇️ CSV</button>
     <button class="btn btn-ghost" onclick="imprimirSeccion('seguimiento')">🖨️ PDF</button>
   </div>
@@ -742,8 +743,11 @@
     <div style="flex:1;min-width:130px;"><label>Curso</label><select id="seg-curso" onchange="updateMateriasSeg();renderSeguimiento()"></select></div>
     <div style="flex:1;min-width:130px;"><label>Materia</label><select id="seg-materia" onchange="renderSeguimiento();cargarTemaSeg()"></select></div>
     <div style="flex:1;min-width:130px;"><label>Fecha de registro</label><input type="date" id="seg-fecha" onchange="renderSeguimiento();cargarTemaSeg()"></div>
+    <div style="display:flex;align-items:flex-end;">
+      <button class="btn btn-ghost btn-sm" onclick="eliminarDiaSegCompleto()" title="Borrar el seguimiento de TODOS los alumnos en la fecha seleccionada"
+        style="border-color:rgba(192,57,43,.4);color:var(--accent);white-space:nowrap;">🗑️ Borrar este día</button>
+    </div>
   </div>
-  <div class="card" style="margin-bottom:1rem;padding:1rem 1.2rem;">
     <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
       <div style="flex:2;min-width:180px;"><label>📖 Tema de la clase</label><input type="text" id="seg-tema-titulo" placeholder="Ej: Oferta y demanda" oninput="guardarTemaSegAuto()"></div>
       <div style="flex:3;min-width:200px;"><label>🎯 Objetivos / descripción</label><input type="text" id="seg-tema-desc" placeholder="Ej: Comprender el equilibrio de mercado…" oninput="guardarTemaSegAuto()"></div>
@@ -1547,6 +1551,88 @@ function renderHistorial(){
 // ══════════════════════
 // EXPORTAR CSV historial completo
 // ══════════════════════
+// ══════════════════════
+// GESTOR DE FECHAS — SEGUIMIENTO
+// ══════════════════════
+function abrirGestorFechasSeg(){
+  // Poblar cursos
+  const sel = document.getElementById('gseg-curso');
+  const cursos = state.filtroEscuelaSeg
+    ? state.cursos.filter(c=>c.escuelaId===state.filtroEscuelaSeg)
+    : state.cursos;
+  sel.innerHTML = cursos.map(c=>`<option value="${c.id}">${c.nombre} — ${getEscuela(c.escuelaId)?.nombre||''}</option>`).join('') || '<option disabled>Sin cursos</option>';
+  gsegUpdateMaterias();
+  document.getElementById('modal-gestor-seg').classList.add('open');
+}
+
+function gsegUpdateMaterias(){
+  const cursoId = parseInt(document.getElementById('gseg-curso').value);
+  const mats = cursoId ? getMateriasDelCurso(cursoId) : [];
+  document.getElementById('gseg-materia').innerHTML =
+    mats.map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('') || '<option disabled>Sin materias</option>';
+  gsegRenderFechas();
+}
+
+function gsegRenderFechas(){
+  const cursoId  = parseInt(document.getElementById('gseg-curso').value);
+  const materiaId= parseInt(document.getElementById('gseg-materia').value);
+  const lista = document.getElementById('gseg-fechas-lista');
+  if(!cursoId || !materiaId){ lista.innerHTML='<div style="color:var(--muted);font-size:.84rem;padding:.5rem;">Seleccioná curso y materia.</div>'; return; }
+
+  // Recolectar todas las fechas con registros para este curso+materia
+  const als = state.alumnos.filter(a=>a.cursoId===cursoId);
+  const fechasSet = new Set();
+  als.forEach(al=>{
+    const reg = state.seguimiento[al.id]?.[materiaId];
+    if(reg) Object.keys(reg).forEach(f=>{ if(reg[f] && Object.values(reg[f]).some(v=>v!==null && v!==undefined && v!=='')) fechasSet.add(f); });
+  });
+
+  const fechas = [...fechasSet].sort().reverse(); // más reciente primero
+
+  if(!fechas.length){
+    lista.innerHTML='<div style="color:var(--muted);font-size:.84rem;padding:.5rem;text-align:center;">Sin registros para este curso y materia.</div>';
+    return;
+  }
+
+  lista.innerHTML = fechas.map(f=>{
+    // Contar cuántos alumnos tienen algo registrado ese día
+    const conDatos = als.filter(al=>{
+      const r = state.seguimiento[al.id]?.[materiaId]?.[f];
+      return r && Object.values(r).some(v=>v!==null && v!==undefined && v!=='');
+    }).length;
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;border-bottom:1px solid var(--border);gap:.5rem;">
+      <div>
+        <span style="font-weight:600;font-size:.9rem;">${fmtFecha(f)}</span>
+        <span style="font-size:.75rem;color:var(--muted);margin-left:.5rem;">${conDatos} alumno${conDatos===1?'':'s'} con datos</span>
+      </div>
+      <button onclick="eliminarFechaSegCompleta(${cursoId},${materiaId},'${f}')"
+        style="background:none;border:1px solid rgba(192,57,43,.4);color:var(--accent);border-radius:6px;padding:.25rem .65rem;font-size:.75rem;cursor:pointer;white-space:nowrap;"
+        onmouseover="this.style.background='rgba(192,57,43,.1)'" onmouseout="this.style.background='none'">🗑️ Borrar</button>
+    </div>`;
+  }).join('');
+}
+
+function eliminarFechaSegCompleta(cursoId, materiaId, fecha){
+  const als = state.alumnos.filter(a=>a.cursoId===cursoId);
+  if(!confirm(`¿Eliminar el seguimiento del ${fmtFecha(fecha)} para todos los alumnos?\n\nEsta acción no se puede deshacer.`)) return;
+  als.forEach(al=>{
+    if(state.seguimiento[al.id]?.[materiaId]?.[fecha])
+      delete state.seguimiento[al.id][materiaId][fecha];
+  });
+  saveLS();
+  gsegRenderFechas();
+  renderSeguimiento();
+  showToast('🗑️ Seguimiento del ' + fmtFecha(fecha) + ' eliminado');
+}
+
+function eliminarDiaSegCompleto(){
+  const fecha     = document.getElementById('seg-fecha').value;
+  const cursoId   = parseInt(document.getElementById('seg-curso').value);
+  const materiaId = parseInt(document.getElementById('seg-materia').value);
+  if(!fecha){ showToast('⚠️ Seleccioná una fecha primero'); return; }
+  eliminarFechaSegCompleta(cursoId, materiaId, fecha);
+}
+
 function eliminarFechaAsist(prefix, fecha){
   if(!confirm(`¿Eliminar el registro de asistencia del ${fmtFecha(fecha)}?\n\nEsto borrará los datos de todos los alumnos de ese día y no se puede deshacer.`)) return;
   const key = prefix + fecha;
@@ -1563,9 +1649,12 @@ function eliminarFechaSeg(alumnoId, materiaId, fecha){
     delete state.seguimiento[alumnoId][materiaId][fecha];
     saveLS();
     renderSeguimiento();
-    // Cerrar el modal de detalle
-    document.getElementById('modal-seguimiento').classList.remove('open');
     showToast('🗑️ Registro del ' + fmtFecha(fecha) + ' eliminado');
+    // Recargar el modal para actualizar el historial (si sigue abierto)
+    const modal = document.getElementById('modal-seguimiento');
+    if(modal && modal.classList.contains('open')){
+      abrirDetalleSeg(alumnoId);
+    }
   }
 }
 
@@ -1874,7 +1963,7 @@ function abrirDetalleSeg(alumnoId){
   document.getElementById('seg-modal-alumno-id').value=alumnoId;
   const fecha=document.getElementById('seg-fecha').value;
   const s=getSeg(alumnoId,materiaId,fecha);
-  const histFechas=Object.keys(state.seguimiento[alumnoId]?.[materiaId]||{}).sort().reverse().slice(0,5);
+  const histFechas=Object.keys(state.seguimiento[alumnoId]?.[materiaId]||{}).sort().reverse();
   document.getElementById('seg-modal-content').innerHTML=`
     <div style="margin-bottom:.8rem;">
       <label>Fecha de este registro</label>
@@ -1930,14 +2019,17 @@ function abrirDetalleSeg(alumnoId){
     </div>
     ${histFechas.length>1?`
     <div style="margin-top:.8rem;">
-      <label>Historial reciente</label>
-      <div style="margin-top:.4rem;display:flex;flex-direction:column;gap:.4rem;">
-        ${histFechas.filter(f=>f!==fecha).slice(0,4).map(f=>{
+      <label>Historial completo (${histFechas.filter(f=>f!==fecha).length} registros)</label>
+      <div style="margin-top:.4rem;display:flex;flex-direction:column;gap:.4rem;max-height:200px;overflow-y:auto;padding-right:.2rem;">
+        ${histFechas.filter(f=>f!==fecha).map(f=>{
           const hs=state.seguimiento[alumnoId][materiaId][f];
           return`<div style="display:flex;align-items:center;gap:.6rem;font-size:.78rem;padding:.4rem .6rem;background:var(--paper);border-radius:8px;border:1px solid var(--border);">
             <span class="seg-date-tag">${fmtFecha(f)}</span>
             ${INDICADORES.map(i=>`<span title="${IND_LABELS[i]}">${hs[i]==='ok'?'✓':hs[i]==='ep'?'~':hs[i]==='no'?'✗':'·'}</span>`).join('')}
-            <span style="color:var(--muted);font-size:.72rem;margin-left:.3rem;">${hs.obs||''}</span>
+            <span style="color:var(--muted);font-size:.72rem;margin-left:.3rem;flex:1;">${hs.obs||''}</span>
+            <button onclick="eliminarFechaSeg(${alumnoId},${materiaId},'${f}')" title="Borrar este registro"
+              style="background:none;border:1px solid rgba(192,57,43,.35);color:var(--accent);border-radius:4px;font-size:.65rem;padding:.1rem .35rem;cursor:pointer;flex-shrink:0;"
+              onmouseover="this.style.background='rgba(192,57,43,.1)'" onmouseout="this.style.background='none'">🗑️</button>
           </div>`;
         }).join('')}
       </div>
@@ -4011,6 +4103,23 @@ window.addEventListener('beforeinstallprompt', function(e) {
 </div>
 
 <!-- PANEL TRAYECTORIA (se abre como overlay desde otras secciones) -->
+<!-- MODAL GESTOR FECHAS SEGUIMIENTO -->
+<div class="modal-bg" id="modal-gestor-seg" onclick="if(event.target===this)closeModal('gestor-seg')">
+  <div class="modal" style="max-width:520px;width:95%;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div style="font-size:1rem;font-weight:700;">🗂️ Fechas registradas en Seguimiento</div>
+      <button class="btn-icon" onclick="closeModal('gestor-seg')">✕</button>
+    </div>
+    <div style="font-size:.82rem;color:var(--muted);margin-bottom:.8rem;">
+      Seleccioná un curso y materia para ver todas las fechas registradas y borrar las que no necesitás.
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem;">
+      <select id="gseg-curso" onchange="gsegUpdateMaterias()" style="flex:1;min-width:120px;"></select>
+      <select id="gseg-materia" onchange="gsegRenderFechas()" style="flex:1;min-width:120px;"></select>
+    </div>
+    <div id="gseg-fechas-lista" style="max-height:380px;overflow-y:auto;"></div>
+  </div>
+</div>
 <div class="tray-overlay" id="tray-overlay" onclick="if(event.target===this)cerrarTrayectoria()">
   <div class="tray-panel">
     <div class="tray-header">
