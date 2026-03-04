@@ -590,6 +590,22 @@
   .ml-dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
   .mapa-asign-select{width:100%;font-size:.68rem;border:1px solid var(--border);border-radius:6px;padding:.2rem .3rem;background:var(--paper);color:var(--ink);cursor:pointer;text-align:center;}
 
+
+  /* BANNER BACKUP */
+  .backup-banner{display:none;position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
+    z-index:1200;background:#1a1a2e;color:#fff;border-radius:14px;
+    padding:.8rem 1.1rem;box-shadow:0 4px 20px rgba(0,0,0,.35);
+    display:flex;align-items:center;gap:.8rem;max-width:420px;width:90%;
+    border-left:4px solid var(--gold);animation:fadeIn .3s ease;}
+  .backup-banner.hidden{display:none!important;}
+  .backup-banner-ico{font-size:1.4rem;flex-shrink:0;}
+  .backup-banner-txt{flex:1;font-size:.82rem;line-height:1.4;}
+  .backup-banner-txt strong{display:block;font-size:.88rem;margin-bottom:.15rem;}
+  .backup-banner-btns{display:flex;flex-direction:column;gap:.35rem;flex-shrink:0;}
+  .backup-banner-btns button{font-size:.75rem;padding:.3rem .7rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;}
+  .btn-bk-now{background:var(--gold);color:#1a1a2e;}
+  .btn-bk-dismiss{background:rgba(255,255,255,.15);color:#fff;}
+
   /* PRINT */
   @media print{header,nav,.nav-tabs,.bottom-nav,.mas-menu,.mas-overlay,.toast,.save-reminder,.notif-overlay,.tray-overlay,.modal-bg,.btn,.btn-icon,.btn-sync,.btn-drive,.school-bar,.horario-vista-btns,.cal-nav,.form-actions,#btn-instalar{display:none!important;}body{background:white!important;color:black!important;}.tab-content{display:block!important;}.tab-content:not(.print-target){display:none!important;}.card{border:1px solid #ccc!important;box-shadow:none!important;break-inside:avoid;}.print-header{display:block!important;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid #333;}}
   .print-header{display:none;}
@@ -938,6 +954,9 @@
     <div class="section-title" style="margin:0;">🗺️ Mapa del aula</div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
       <button class="btn btn-ghost btn-sm" onclick="mapaToggleModoAsist()" id="btn-mapa-asist">✅ Tomar asistencia</button>
+      <select id="mapa-materia-asist" style="display:none;font-size:.8rem;padding:.3rem .5rem;border-radius:8px;border:1px solid var(--border);background:var(--paper);color:var(--ink);" onchange="mapaRenderizar()">
+        <option value="">— Materia —</option>
+      </select>
       <button class="btn btn-ghost btn-sm" onclick="mapaGuardar()">💾 Guardar mapa</button>
       <button class="btn btn-ghost btn-sm" onclick="imprimirSeccion('mapa')">🖨️ Imprimir</button>
     </div>
@@ -969,6 +988,20 @@
 </div>
 
 </main>
+
+
+<!-- BANNER AVISO BACKUP -->
+<div class="backup-banner hidden" id="backup-banner">
+  <div class="backup-banner-ico">💾</div>
+  <div class="backup-banner-txt">
+    <strong>¿Cuándo fue tu último backup?</strong>
+    Hace más de 3 días que no guardás una copia. Si se limpia el caché del celular, perdés todo.
+  </div>
+  <div class="backup-banner-btns">
+    <button class="btn-bk-now" onclick="backupDesdeAviso()">Hacer backup</button>
+    <button class="btn-bk-dismiss" onclick="dismissBackupBanner()">Ahora no</button>
+  </div>
+</div>
 
 <!-- MODALS -->
 <div class="modal-bg" id="modal-alumno">
@@ -3018,7 +3051,9 @@ function exportarDatos(){
   a.download=`profedesk_backup_${hoy}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
-  showToast('⬇️ Backup completo descargado');
+  localStorage.setItem('pd_last_backup', new Date().toISOString());
+  ocultarBackupBanner();
+  showToast('⬇️ Backup guardado · Próximo aviso en 3 días');
 }
 
 function importarDatos(event){
@@ -3321,6 +3356,7 @@ document.getElementById('seg-fecha').value=_d.toISOString().slice(0,10);
 setTimeout(mostrarNotificacion, 600);
 
 renderAll();
+setTimeout(chequearAviosoBackup, 2000);
 if(_hasSaved)showToast('✅ Datos cargados correctamente');
 else showToast('👋 Bienvenido a ProfeDesk');
 })(); // end initApp
@@ -4088,7 +4124,12 @@ function mapaRenderizar(){
   const m       = _getMapaData(_mapaCursoId);
   const als     = state.alumnos.filter(a=>a.cursoId===_mapaCursoId);
   const fecha   = new Date().toISOString().slice(0,10);
-  const asist   = (state.mapaAsist||{})[_mapaCursoId]?.[fecha] || {};
+  const materiaId = parseInt(document.getElementById('mapa-materia-asist')?.value);
+  const asistKey  = `${_mapaCursoId}_${materiaId}_${fecha}`;
+  const asistRaw  = materiaId ? (state.asistencia[asistKey] || {}) : {};
+  // Normalizar: asistRaw[alumnoId] puede ser {estado,nota} o 'P'/'A'/'T' (legacy mapaAsist)
+  const asist = {};
+  Object.entries(asistRaw).forEach(([id,v])=>{ asist[id] = typeof v === 'object' ? v?.estado : v; });
   const esc     = _mapaFiltroEsc ? getEscuela(_mapaFiltroEsc) : null;
   const col     = esc ? getColor(esc.id) : '#888';
   const total   = m.cols * m.filas;
@@ -4108,7 +4149,7 @@ function mapaRenderizar(){
   }
 
   // Grilla
-  let html = `<div class="mapa-pizarron">📋 PIZARRÓN / FRENTE DEL AULA</div>`;
+  let html = `<div style="grid-column:1/-1;text-align:center;font-size:.72rem;color:var(--muted);padding:.3rem 0 .5rem;letter-spacing:.5px;">👤 DOCENTE</div>`;
   for(let i=0; i<total; i++){
     const celda = m.celdas[i] || {alumnoId:null, bloqueado:false};
     if(celda.bloqueado){
@@ -4151,7 +4192,7 @@ function mapaRenderizar(){
   }
 
   const wrap = document.getElementById('mapa-wrap');
-  wrap.innerHTML = `<div class="mapa-grid" style="grid-template-columns:repeat(${m.cols},1fr);">${html}</div>`;
+  wrap.innerHTML = `<div class="mapa-grid" style="grid-template-columns:repeat(${m.cols},1fr);">${html}<div class="mapa-pizarron" style="margin-top:.4rem;margin-bottom:0;">📋 PIZARRÓN / FRENTE DEL AULA</div></div>`;
 
   // Leyenda modo asistencia
   document.getElementById('mapa-legend').style.display = _mapaModoAsist ? 'flex' : 'none';
@@ -4186,12 +4227,18 @@ function mapaCeldaClick(idx){
 function mapaCycleAsist(alumnoId){
   if(!_mapaModoAsist || !_mapaCursoId) return;
   const fecha = new Date().toISOString().slice(0,10);
-  if(!state.mapaAsist) state.mapaAsist = {};
-  if(!state.mapaAsist[_mapaCursoId]) state.mapaAsist[_mapaCursoId] = {};
-  if(!state.mapaAsist[_mapaCursoId][fecha]) state.mapaAsist[_mapaCursoId][fecha] = {};
-  const cur = state.mapaAsist[_mapaCursoId][fecha][alumnoId];
+  const materiaId = parseInt(document.getElementById('mapa-materia-asist')?.value);
+  if(!materiaId){ showToast('⚠️ Seleccioná una materia primero'); return; }
+  const key = `${_mapaCursoId}_${materiaId}_${fecha}`;
+  if(!state.asistencia[key]) state.asistencia[key] = {};
+  const cur = state.asistencia[key][alumnoId]?.estado;
   const ciclo = {undefined:'P', null:'P', 'P':'A', 'A':'T', 'T':null};
-  state.mapaAsist[_mapaCursoId][fecha][alumnoId] = ciclo[cur] ?? 'P';
+  const nuevo = ciclo[cur] ?? 'P';
+  if(nuevo === null){
+    delete state.asistencia[key][alumnoId];
+  } else {
+    state.asistencia[key][alumnoId] = { estado: nuevo, nota: state.asistencia[key][alumnoId]?.nota || null };
+  }
   saveLS();
   mapaRenderizar();
 }
@@ -4199,8 +4246,19 @@ function mapaCycleAsist(alumnoId){
 function mapaToggleModoAsist(){
   _mapaModoAsist = !_mapaModoAsist;
   const btn = document.getElementById('btn-mapa-asist');
+  const selMat = document.getElementById('mapa-materia-asist');
   if(btn) btn.textContent = _mapaModoAsist ? '✏️ Editar ubicaciones' : '✅ Tomar asistencia';
-  if(_mapaModoAsist && _mapaCursoId) showToast('Clic en cada banco para marcar P → A → T → sin marcar');
+  if(_mapaModoAsist && _mapaCursoId){
+    // Poblar materias del curso
+    const mats = getMateriasDelCurso(_mapaCursoId);
+    if(selMat){
+      selMat.innerHTML = '<option value="">— Materia —</option>' + mats.map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('');
+      selMat.style.display = 'inline-block';
+    }
+    showToast('Elegí la materia y hacé clic en cada banco: P → A → T');
+  } else {
+    if(selMat) selMat.style.display = 'none';
+  }
   mapaRenderizar();
 }
 
@@ -4218,6 +4276,48 @@ function mapaResetear(){
   saveLS();
   mapaRenderizar();
   showToast('🗑️ Mapa limpiado');
+}
+
+// ══════════════════════════════════════════════
+// AVISO BACKUP AUTOMÁTICO
+// ══════════════════════════════════════════════
+function chequearAviosoBackup(){
+  const last = localStorage.getItem('pd_last_backup');
+  if(!last){
+    // Nunca hizo backup — avisar después de 3 días desde primera carga
+    const firstUse = localStorage.getItem('pd_first_use');
+    if(!firstUse){
+      localStorage.setItem('pd_first_use', new Date().toISOString());
+      return;
+    }
+    const dias = (Date.now() - new Date(firstUse)) / 86400000;
+    if(dias >= 3) mostrarBackupBanner();
+    return;
+  }
+  const dias = (Date.now() - new Date(last)) / 86400000;
+  if(dias >= 3) mostrarBackupBanner();
+}
+
+function mostrarBackupBanner(){
+  const el = document.getElementById('backup-banner');
+  if(el){ el.classList.remove('hidden'); el.style.display='flex'; }
+}
+
+function ocultarBackupBanner(){
+  const el = document.getElementById('backup-banner');
+  if(el){ el.classList.add('hidden'); el.style.display='none'; }
+}
+
+function dismissBackupBanner(){
+  // Posponer 1 día
+  const postponed = new Date(Date.now() + 86400000).toISOString();
+  localStorage.setItem('pd_last_backup', postponed);
+  ocultarBackupBanner();
+  showToast('Te avisamos mañana 👍');
+}
+
+function backupDesdeAviso(){
+  exportarDatos();
 }
 
 // ═══════════════════════════════════════════════════
