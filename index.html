@@ -1126,10 +1126,17 @@ function goTab(name,el){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
-  renderAll();
-  if(name==='horario')renderHorario();
-  if(name==='trayectoria')renderTrayLista();
-  if(name==='mapa'){renderFiltroMapa();mapaCargar();}
+  // Renderizar SOLO lo necesario para la pestaña activa
+  if(name==='inicio'){renderInicio();renderProximosInicio();renderNotasInicio();}
+  else if(name==='calendario'){renderCalendario();}
+  else if(name==='alumnos'){renderFiltroAlumnos();renderTablaAlumnos();}
+  else if(name==='asistencia'){renderFiltroAsist();}
+  else if(name==='historial'){renderFiltroHist();renderHistorial();}
+  else if(name==='seguimiento'){renderFiltroSeg();}
+  else if(name==='horario'){renderHorario();}
+  else if(name==='escuelas'){renderEscuelas();}
+  else if(name==='trayectoria'){renderTrayLista();}
+  else if(name==='mapa'){renderFiltroMapa();mapaCargar();}
 }
 function goTabDirect(name){
   const tabs=document.querySelectorAll('.nav-tab');
@@ -2747,16 +2754,27 @@ function cerrarNotif(){document.getElementById('notif-overlay').classList.remove
 // RENDER ALL
 // ══════════════════════
 function renderAll(){
+  // Solo renderizar cosas globales (inicio, pills de filtro, escuelas)
+  // Las pestañas específicas se renderizan en goTab
   renderInicio();
   renderFiltroAlumnos();renderTablaAlumnos();
   renderFiltroAsist();
-  renderFiltroHist();renderHistorial();
+  renderFiltroHist();
   renderFiltroSeg();
   renderCalendario();
   renderProximosInicio();
   renderEscuelas();
   renderNotasInicio();
   renderFiltroMapa();
+  // Re-renderizar la pestaña activa si no es inicio
+  const activeTab=document.querySelector('.tab-content.active');
+  if(!activeTab)return;
+  const id=activeTab.id.replace('tab-','');
+  if(id==='historial')renderHistorial();
+  else if(id==='seguimiento')renderSeguimiento();
+  else if(id==='horario')renderHorario();
+  else if(id==='trayectoria')renderTrayLista();
+  else if(id==='mapa')mapaCargar();
 }
 
 // ══════════════════════
