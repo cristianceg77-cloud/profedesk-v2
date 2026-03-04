@@ -797,6 +797,7 @@
         style="border-color:rgba(192,57,43,.4);color:var(--accent);white-space:nowrap;">🗑️ Borrar este día</button>
     </div>
   </div>
+  <div class="card" style="margin-bottom:1rem;padding:1rem 1.2rem;">
     <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
       <div style="flex:2;min-width:180px;"><label>📖 Tema de la clase</label><input type="text" id="seg-tema-titulo" placeholder="Ej: Oferta y demanda" oninput="guardarTemaSegAuto()"></div>
       <div style="flex:3;min-width:200px;"><label>🎯 Objetivos / descripción</label><input type="text" id="seg-tema-desc" placeholder="Ej: Comprender el equilibrio de mercado…" oninput="guardarTemaSegAuto()"></div>
@@ -880,6 +881,91 @@
     <button class="btn btn-primary btn-sm" onclick="openModal('materia')">+ Nueva materia</button>
   </div>
   <div id="lista-materias"></div>
+</div>
+
+<!-- ═══ TRAYECTORIA ═══ -->
+<div class="tab-content" id="tab-trayectoria">
+  <div class="section-title" style="margin-bottom:1rem;">👤 Trayectoria estudiantil</div>
+
+  <!-- Filtros + buscador -->
+  <div class="card" style="margin-bottom:1rem;padding:.9rem 1.1rem;">
+    <div style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:130px;">
+        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Escuela</label>
+        <select id="tray-fil-escuela" onchange="trayFiltroEscuela()" style="width:100%;">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:130px;">
+        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Curso</label>
+        <select id="tray-fil-curso" onchange="trayFiltroCurso()" style="width:100%;">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:130px;">
+        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Materia</label>
+        <select id="tray-fil-materia" onchange="renderTrayLista()" style="width:100%;">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div style="flex:2;min-width:160px;">
+        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Buscar alumno</label>
+        <div class="search-wrap" style="margin-bottom:0;">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Nombre…" id="tray-search" oninput="renderTrayLista()" style="font-size:.9rem;">
+        </div>
+      </div>
+    </div>
+    <div id="tray-fil-count" style="font-size:.75rem;color:var(--muted);margin-top:.5rem;"></div>
+  </div>
+
+  <div id="tray-tab-layout" style="display:grid;grid-template-columns:260px 1fr;gap:1rem;align-items:start;">
+    <div class="card" style="margin:0;padding:0;overflow:hidden;">
+      <div id="tray-alumno-lista" style="max-height:75vh;overflow-y:auto;"></div>
+    </div>
+    <div id="tray-detalle-wrap">
+      <div class="card" style="margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1rem;color:var(--muted);gap:.5rem;">
+        <div style="font-size:2.5rem;">👤</div>
+        <div style="font-size:.9rem;">Seleccioná un alumno para ver su trayectoria</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAPA DEL AULA ═══ -->
+<div class="tab-content" id="tab-mapa">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
+    <div class="section-title" style="margin:0;">🗺️ Mapa del aula</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="mapaToggleModoAsist()" id="btn-mapa-asist">✅ Tomar asistencia</button>
+      <button class="btn btn-ghost btn-sm" onclick="mapaGuardar()">💾 Guardar mapa</button>
+      <button class="btn btn-ghost btn-sm" onclick="imprimirSeccion('mapa')">🖨️ Imprimir</button>
+    </div>
+  </div>
+  <div class="school-bar" id="filtro-mapa-pills"></div>
+  <div class="mapa-config-bar">
+    <div style="min-width:130px;"><label>Curso</label><select id="mapa-curso" onchange="mapaCargar()"></select></div>
+    <div style="display:flex;align-items:flex-end;gap:.4rem;">
+      <div><label>Columnas</label><input type="number" id="mapa-cols" min="2" max="10" value="5" style="width:64px;" onchange="mapaRedibujar()"></div>
+      <div><label>Filas</label><input type="number" id="mapa-filas" min="2" max="10" value="6" style="width:64px;" onchange="mapaRedibujar()"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="align-self:flex-end;" onclick="mapaResetear()" title="Vaciar todos los bancos">🗑️ Limpiar</button>
+  </div>
+  <div class="mapa-legend" id="mapa-legend" style="display:none;">
+    <strong style="font-size:.75rem;">Asistencia:</strong>
+    <span><span class="ml-dot" style="background:var(--sage);"></span>Presente</span>
+    <span><span class="ml-dot" style="background:var(--accent);"></span>Ausente</span>
+    <span><span class="ml-dot" style="background:var(--gold);"></span>Tarde</span>
+    <span><span class="ml-dot" style="background:var(--border);"></span>Sin marcar</span>
+    <span style="color:var(--muted);margin-left:.5rem;font-size:.72rem;">Clic en banco para cambiar estado · Clic en nombre para ver trayectoria</span>
+  </div>
+  <div id="mapa-sin-ubicar" style="display:none;margin-bottom:.8rem;">
+    <div style="font-size:.76rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem;">Sin ubicar aún</div>
+    <div id="mapa-sin-ubicar-lista" style="display:flex;flex-wrap:wrap;gap:.4rem;"></div>
+  </div>
+  <div id="mapa-wrap">
+    <div class="empty-state"><div class="big">🗺️</div><div>Seleccioná una escuela y curso para ver el mapa</div></div>
+  </div>
 </div>
 
 </main>
@@ -4329,91 +4415,6 @@ window.addEventListener('beforeinstallprompt', function(e) {
   </div>
 </div>
 
-
-<!-- ═══ TRAYECTORIA ═══ -->
-<div class="tab-content" id="tab-trayectoria">
-  <div class="section-title" style="margin-bottom:1rem;">👤 Trayectoria estudiantil</div>
-
-  <!-- Filtros + buscador -->
-  <div class="card" style="margin-bottom:1rem;padding:.9rem 1.1rem;">
-    <div style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;">
-      <div style="flex:1;min-width:130px;">
-        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Escuela</label>
-        <select id="tray-fil-escuela" onchange="trayFiltroEscuela()" style="width:100%;">
-          <option value="">Todas</option>
-        </select>
-      </div>
-      <div style="flex:1;min-width:130px;">
-        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Curso</label>
-        <select id="tray-fil-curso" onchange="trayFiltroCurso()" style="width:100%;">
-          <option value="">Todos</option>
-        </select>
-      </div>
-      <div style="flex:1;min-width:130px;">
-        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Materia</label>
-        <select id="tray-fil-materia" onchange="renderTrayLista()" style="width:100%;">
-          <option value="">Todas</option>
-        </select>
-      </div>
-      <div style="flex:2;min-width:160px;">
-        <label style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:.3rem;">Buscar alumno</label>
-        <div class="search-wrap" style="margin-bottom:0;">
-          <span class="search-icon">🔍</span>
-          <input type="text" placeholder="Nombre…" id="tray-search" oninput="renderTrayLista()" style="font-size:.9rem;">
-        </div>
-      </div>
-    </div>
-    <div id="tray-fil-count" style="font-size:.75rem;color:var(--muted);margin-top:.5rem;"></div>
-  </div>
-
-  <div id="tray-tab-layout" style="display:grid;grid-template-columns:260px 1fr;gap:1rem;align-items:start;">
-    <div class="card" style="margin:0;padding:0;overflow:hidden;">
-      <div id="tray-alumno-lista" style="max-height:75vh;overflow-y:auto;"></div>
-    </div>
-    <div id="tray-detalle-wrap">
-      <div class="card" style="margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1rem;color:var(--muted);gap:.5rem;">
-        <div style="font-size:2.5rem;">👤</div>
-        <div style="font-size:.9rem;">Seleccioná un alumno para ver su trayectoria</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ MAPA DEL AULA ═══ -->
-<div class="tab-content" id="tab-mapa">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
-    <div class="section-title" style="margin:0;">🗺️ Mapa del aula</div>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-      <button class="btn btn-ghost btn-sm" onclick="mapaToggleModoAsist()" id="btn-mapa-asist">✅ Tomar asistencia</button>
-      <button class="btn btn-ghost btn-sm" onclick="mapaGuardar()">💾 Guardar mapa</button>
-      <button class="btn btn-ghost btn-sm" onclick="imprimirSeccion('mapa')">🖨️ Imprimir</button>
-    </div>
-  </div>
-  <div class="school-bar" id="filtro-mapa-pills"></div>
-  <div class="mapa-config-bar">
-    <div style="min-width:130px;"><label>Curso</label><select id="mapa-curso" onchange="mapaCargar()"></select></div>
-    <div style="display:flex;align-items:flex-end;gap:.4rem;">
-      <div><label>Columnas</label><input type="number" id="mapa-cols" min="2" max="10" value="5" style="width:64px;" onchange="mapaRedibujar()"></div>
-      <div><label>Filas</label><input type="number" id="mapa-filas" min="2" max="10" value="6" style="width:64px;" onchange="mapaRedibujar()"></div>
-    </div>
-    <button class="btn btn-ghost btn-sm" style="align-self:flex-end;" onclick="mapaResetear()" title="Vaciar todos los bancos">🗑️ Limpiar</button>
-  </div>
-  <div class="mapa-legend" id="mapa-legend" style="display:none;">
-    <strong style="font-size:.75rem;">Asistencia:</strong>
-    <span><span class="ml-dot" style="background:var(--sage);"></span>Presente</span>
-    <span><span class="ml-dot" style="background:var(--accent);"></span>Ausente</span>
-    <span><span class="ml-dot" style="background:var(--gold);"></span>Tarde</span>
-    <span><span class="ml-dot" style="background:var(--border);"></span>Sin marcar</span>
-    <span style="color:var(--muted);margin-left:.5rem;font-size:.72rem;">Clic en banco para cambiar estado · Clic en nombre para ver trayectoria</span>
-  </div>
-  <div id="mapa-sin-ubicar" style="display:none;margin-bottom:.8rem;">
-    <div style="font-size:.76rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem;">Sin ubicar aún</div>
-    <div id="mapa-sin-ubicar-lista" style="display:flex;flex-wrap:wrap;gap:.4rem;"></div>
-  </div>
-  <div id="mapa-wrap">
-    <div class="empty-state"><div class="big">🗺️</div><div>Seleccioná una escuela y curso para ver el mapa</div></div>
-  </div>
-</div>
 
 <!-- PANEL TRAYECTORIA (se abre como overlay desde otras secciones) -->
 <!-- MODAL GESTOR FECHAS SEGUIMIENTO -->
