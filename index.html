@@ -3077,6 +3077,8 @@ function importarDatos(event){
       state.notas=datos.notas||[];
       state.horario=datos.horario||[];
       state.trayectoria=datos.trayectoria||{};
+      state.mapaAulas=datos.mapaAulas||{};
+      state.mapaAsist=datos.mapaAsist||{};
       state.nextId=datos.nextId||200;
       saveLS();renderAll();
       showToast('✅ Datos importados correctamente');
@@ -3584,6 +3586,8 @@ async function _driveDoPull() {
     if(datos.notas)        state.notas        = datos.notas;
     if(datos.horario)      state.horario      = datos.horario;
     if(datos.trayectoria)  state.trayectoria  = datos.trayectoria;
+    if(datos.mapaAulas)    state.mapaAulas    = datos.mapaAulas;
+    if(datos.mapaAsist)    state.mapaAsist    = datos.mapaAsist;
     if(datos.nextId)       state.nextId       = datos.nextId;
     saveLS(); renderAll();
 
@@ -3607,7 +3611,9 @@ function _buildSyncData() {
     cursoMaterias:state.cursoMaterias, alumnos:state.alumnos,
     asistencia:state.asistencia, temas:state.temas, seguimiento:state.seguimiento,
     eventos:state.eventos, notas:state.notas, horario:state.horario||[],
-    trayectoria:state.trayectoria||{}, nextId:state.nextId,
+    trayectoria:state.trayectoria||{},
+    mapaAulas:state.mapaAulas||{}, mapaAsist:state.mapaAsist||{},
+    nextId:state.nextId,
   };
 }
 
@@ -4149,7 +4155,7 @@ function mapaRenderizar(){
   }
 
   // Grilla
-  let html = `<div style="grid-column:1/-1;text-align:center;font-size:.72rem;color:var(--muted);padding:.3rem 0 .5rem;letter-spacing:.5px;">👤 DOCENTE</div>`;
+  let html = ``;
   for(let i=0; i<total; i++){
     const celda = m.celdas[i] || {alumnoId:null, bloqueado:false};
     if(celda.bloqueado){
@@ -4192,7 +4198,7 @@ function mapaRenderizar(){
   }
 
   const wrap = document.getElementById('mapa-wrap');
-  wrap.innerHTML = `<div class="mapa-grid" style="grid-template-columns:repeat(${m.cols},1fr);">${html}<div class="mapa-pizarron" style="margin-top:.4rem;margin-bottom:0;">📋 PIZARRÓN / FRENTE DEL AULA</div></div>`;
+  wrap.innerHTML = `<div class="mapa-grid" style="grid-template-columns:repeat(${m.cols},1fr);">${html}<div class="mapa-pizarron" style="margin-top:.4rem;margin-bottom:0;">📋 PIZARRÓN &nbsp;·&nbsp; FRENTE DEL AULA &nbsp;|&nbsp; 👤 DOCENTE</div></div>`;
 
   // Leyenda modo asistencia
   document.getElementById('mapa-legend').style.display = _mapaModoAsist ? 'flex' : 'none';
