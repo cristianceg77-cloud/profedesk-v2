@@ -4376,17 +4376,387 @@ function confirmarBorrarTodo() {
 // ═══════════════════════════════════════════════════
 // IMPRIMIR / PDF
 // ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// PARCHE: imprimirSeccion mejorada — muestra TODAS las fechas
+// Reemplaza la función original en ProfeDesk
+// ═══════════════════════════════════════════════════════════════
+
 function imprimirSeccion(seccion) {
-  document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('print-target'); });
-  const el = document.getElementById('tab-'+seccion);
-  if(el) el.classList.add('print-target');
-  const hoy = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const titulo = {asistencia:'Asistencia',seguimiento:'Seguimiento pedagogico',historial:'Historial'}[seccion]||seccion;
+  if (seccion === 'asistencia') {
+    imprimirAsistenciaCompleta();
+  } else if (seccion === 'seguimiento') {
+    imprimirSeguimientoCompleto();
+  } else {
+    // Secciones genéricas (mapa, etc.)
+    _imprimirGenerico(seccion);
+  }
+}
+
+// ── Helpers compartidos ──────────────────────────────────────────
+function _estilosPrint() {
+  return `
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:'DM Sans',sans-serif; color:#1a1a2e; background:white; font-size:11px; }
+      h1 { font-family:'Playfair Display',serif; font-size:18px; margin-bottom:4px; }
+      h2 { font-family:'Playfair Display',serif; font-size:14px; margin:14px 0 6px; color:#333; }
+      .meta { font-size:10px; color:#666; margin-bottom:12px; }
+      .badge { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
+      .badge-p  { background:rgba(74,124,89,.15); color:#2d5e38; }
+      .badge-a  { background:rgba(192,57,43,.12); color:#8b1e10; }
+      .badge-t  { background:rgba(212,160,23,.15); color:#7a5800; }
+      table { width:100%; border-collapse:collapse; font-size:10px; margin-bottom:16px; page-break-inside:auto; }
+      thead { background:#1a1a2e; color:white; }
+      th { padding:5px 7px; text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+      td { padding:4px 7px; border-bottom:1px solid #e8e8e8; vertical-align:middle; }
+      tr:nth-child(even) td { background:#fafafa; }
+      tr:last-child td { border-bottom:none; }
+      .nota-badge { display:inline-block; min-width:22px; text-align:center; padding:1px 3px; border-radius:4px; font-weight:700; font-size:9px; }
+      .nota-a { background:rgba(74,124,89,.15); color:#2d5e38; }
+      .nota-b { background:rgba(212,160,23,.15); color:#7a5800; }
+      .nota-c { background:rgba(192,57,43,.12); color:#8b1e10; }
+      .dot { display:inline-block; width:9px; height:9px; border-radius:50%; }
+      .hP  { background:#4a7c59; }
+      .hA  { background:#c0392b; }
+      .hT  { background:#d4a017; }
+      .hN  { background:#ddd; }
+      .ind-ok { color:#2d5e38; font-weight:700; }
+      .ind-ep { color:#7a5800; font-weight:700; }
+      .ind-no { color:#8b1e10; font-weight:700; }
+      .ind-nd { color:#ccc; }
+      .resumen-bar { display:flex; gap:12px; font-size:10px; margin-bottom:10px; flex-wrap:wrap; }
+      .rs { padding:2px 8px; border-radius:10px; font-weight:700; }
+      .rs-p { background:rgba(74,124,89,.12); color:#2d5e38; }
+      .rs-a { background:rgba(192,57,43,.1); color:#8b1e10; }
+      .rs-t { background:rgba(212,160,23,.12); color:#7a5800; }
+      .encabezado { border-bottom:3px solid #d4a017; padding-bottom:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-start; }
+      .logo { font-size:22px; font-family:'Playfair Display',serif; }
+      .logo span { color:#c0392b; }
+      .tema-tag { background:#f5f0e8; border-left:3px solid #d4a017; padding:2px 6px; font-size:9px; color:#555; border-radius:0 4px 4px 0; margin-left:4px; }
+      .obs-cell { font-style:italic; color:#555; font-size:9px; max-width:160px; }
+      .chip { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
+      .chip-full { background:rgba(74,124,89,.15); color:#2d5e38; }
+      .chip-part { background:rgba(212,160,23,.15); color:#7a5800; }
+      .chip-none { background:rgba(192,57,43,.1); color:#8b1e10; }
+      .seccion-sep { border:none; border-top:1px solid #e0d8c8; margin:14px 0; }
+      @page { margin:12mm 10mm; }
+      @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+    </style>
+  `;
+}
+
+function _encabezadoPrint(titulo, subtitulo) {
+  const hoy = new Date().toLocaleDateString('es-AR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  return `
+    <div class="encabezado">
+      <div>
+        <div class="logo">Profe<span>Desk</span></div>
+        <h1>${titulo}</h1>
+        <div class="meta">${subtitulo}</div>
+      </div>
+      <div style="text-align:right; font-size:10px; color:#888;">
+        Impreso el<br><strong style="color:#1a1a2e;">${hoy}</strong>
+      </div>
+    </div>
+  `;
+}
+
+function _abrirVentanaPrint(html) {
+  const w = window.open('', '_blank', 'width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>ProfeDesk — Impresión</title>${_estilosPrint()}</head><body>${html}</body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(() => { w.print(); }, 600);
+}
+
+function _notaClass(n) {
+  if (n == null) return '';
+  if (n >= 7)  return 'nota-a';
+  if (n >= 5)  return 'nota-b';
+  return 'nota-c';
+}
+
+// ── ASISTENCIA COMPLETA ──────────────────────────────────────────
+function imprimirAsistenciaCompleta() {
+  // Recopilar filtro activo
+  const escuela = state.filtroEscuelaAsist ? getEscuela(state.filtroEscuelaAsist) : null;
+
+  // Determinar cursos a imprimir
+  const cursos = escuela
+    ? state.cursos.filter(c => c.escuelaId === escuela.id)
+    : state.cursos;
+
+  if (!cursos.length) { showToast('⚠️ No hay cursos para imprimir'); return; }
+
+  let html = _encabezadoPrint(
+    'Registro de asistencia',
+    `${escuela ? escuela.nombre : 'Todas las escuelas'} · Todas las fechas registradas`
+  );
+
+  let totalSecciones = 0;
+
+  cursos.forEach(curso => {
+    const mats = getMateriasDelCurso(curso.id);
+    const als  = state.alumnos.filter(a => a.cursoId === curso.id);
+    if (!als.length) return;
+
+    const escCurso = getEscuela(curso.escuelaId);
+
+    mats.forEach(mat => {
+      const prefix = `${curso.id}_${mat.id}_`;
+      const fechas = [...new Set(
+        Object.keys(state.asistencia)
+          .filter(k => k.startsWith(prefix))
+          .map(k => k.replace(prefix, ''))
+      )].sort();
+
+      if (!fechas.length) return;
+      totalSecciones++;
+
+      // Conteos globales para resumen
+      let totP = 0, totA = 0, totT = 0, totTotal = 0;
+      als.forEach(al => {
+        fechas.forEach(f => {
+          const d = state.asistencia[`${prefix}${f}`]?.[al.id];
+          if (d?.estado) {
+            totTotal++;
+            if (d.estado === 'P') totP++;
+            else if (d.estado === 'A') totA++;
+            else if (d.estado === 'T') totT++;
+          }
+        });
+      });
+
+      html += `<h2>${escCurso ? escCurso.nombre + ' · ' : ''}${curso.nombre} — ${mat.nombre}</h2>`;
+      html += `<div class="resumen-bar">
+        <span class="rs rs-p">✓ Presentes: ${totP}</span>
+        <span class="rs rs-a">✗ Ausentes: ${totA}</span>
+        <span class="rs rs-t">T Tardes: ${totT}</span>
+        <span style="color:#888;">${fechas.length} fecha(s) · ${als.length} alumno(s)</span>
+      </div>`;
+
+      // Tabla: alumno × fecha
+      html += `<table>
+        <thead><tr>
+          <th style="min-width:130px;">Alumno</th>
+          ${fechas.map(f => {
+            const tema = state.temas[`${prefix}${f}`];
+            return `<th style="text-align:center; min-width:52px;">
+              ${f.slice(8,10)}/${f.slice(5,7)}/${f.slice(0,4)}
+              ${tema?.titulo ? `<br><span style="font-size:8px;color:#d4a017;font-weight:400;">${tema.titulo.slice(0,14)}${tema.titulo.length>14?'…':''}</span>` : ''}
+            </th>`;
+          }).join('')}
+          <th style="text-align:center;">% Asist.</th>
+          <th style="text-align:center;">Prom. clase</th>
+        </tr></thead>
+        <tbody>
+        ${als.map(al => {
+          const P = fechas.filter(f => state.asistencia[`${prefix}${f}`]?.[al.id]?.estado === 'P').length;
+          const A = fechas.filter(f => state.asistencia[`${prefix}${f}`]?.[al.id]?.estado === 'A').length;
+          const T = fechas.filter(f => state.asistencia[`${prefix}${f}`]?.[al.id]?.estado === 'T').length;
+          const pct = fechas.length ? Math.round(P / fechas.length * 100) : 0;
+          const notas = fechas.map(f => state.asistencia[`${prefix}${f}`]?.[al.id]?.nota).filter(n => n != null);
+          const promN = notas.length ? (notas.reduce((a,b) => a+b, 0) / notas.length).toFixed(1) : null;
+
+          return `<tr>
+            <td>${al.nombre}</td>
+            ${fechas.map(f => {
+              const d = state.asistencia[`${prefix}${f}`]?.[al.id];
+              const e = d?.estado;
+              const n = d?.nota;
+              const cls = e==='P'?'hP':e==='A'?'hA':e==='T'?'hT':'hN';
+              return `<td style="text-align:center;">
+                <span class="dot ${cls}" title="${e||'—'}"></span>
+                ${n != null ? `<br><span style="font-size:8px;color:#555;">${n}</span>` : ''}
+              </td>`;
+            }).join('')}
+            <td style="text-align:center; font-weight:700; color:${pct<60?'#c0392b':pct<80?'#d4a017':'#4a7c59'};">
+              ${pct}%<br><span style="font-weight:400;color:#888;font-size:9px;">${P}P ${A}A ${T}T</span>
+            </td>
+            <td style="text-align:center;">
+              ${promN ? `<span class="nota-badge ${_notaClass(parseFloat(promN))}">${promN}</span>` : '<span style="color:#ccc;">—</span>'}
+            </td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>`;
+
+      // Leyenda de temas si hay alguno
+      const temasConNombre = fechas.filter(f => state.temas[`${prefix}${f}`]?.titulo);
+      if (temasConNombre.length) {
+        html += `<div style="font-size:9px;color:#666;margin-bottom:14px;">
+          <strong>📖 Temas de clase:</strong><br>
+          ${temasConNombre.map(f => {
+            const t = state.temas[`${prefix}${f}`];
+            return `<span style="margin-right:12px;">${f.slice(8,10)}/${f.slice(5,7)}: <em>${t.titulo}</em>${t.descripcion?' — '+t.descripcion:''}</span>`;
+          }).join('<br>')}
+        </div>`;
+      }
+
+      html += `<hr class="seccion-sep">`;
+    });
+  });
+
+  if (!totalSecciones) {
+    showToast('⚠️ No hay registros de asistencia para imprimir');
+    return;
+  }
+
+  // Leyenda final
+  html += `<div style="font-size:9px;color:#888;margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;">
+    <span><span class="dot hP"></span> Presente</span>
+    <span><span class="dot hA"></span> Ausente</span>
+    <span><span class="dot hT"></span> Tarde</span>
+    <span><span class="dot hN"></span> Sin dato</span>
+  </div>`;
+
+  _abrirVentanaPrint(html);
+  showToast('🖨️ Preparando impresión de asistencia completa…');
+}
+
+// ── SEGUIMIENTO COMPLETO ──────────────────────────────────────────
+function imprimirSeguimientoCompleto() {
+  const escuela = state.filtroEscuelaSeg ? getEscuela(state.filtroEscuelaSeg) : null;
+  const cursos  = escuela
+    ? state.cursos.filter(c => c.escuelaId === escuela.id)
+    : state.cursos;
+
+  if (!cursos.length) { showToast('⚠️ No hay cursos para imprimir'); return; }
+
+  const INDS = ['interpreta','analiza','resuelve','transmite'];
+  const IND_SHORT = { interpreta:'Interp.', analiza:'Analiza', resuelve:'Resuelve', transmite:'Transm.' };
+  const fmtInd = v => v==='ok' ? `<span class="ind-ok">✓</span>` : v==='ep' ? `<span class="ind-ep">~</span>` : v==='no' ? `<span class="ind-no">✗</span>` : `<span class="ind-nd">·</span>`;
+
+  function chipSeg(registros) {
+    if (!registros.length) return `<span class="chip chip-none">Sin datos</span>`;
+    const ultimo = registros[registros.length - 1];
+    const ok = INDS.filter(i => ultimo[i] === 'ok').length;
+    if (ok === 4)              return `<span class="chip chip-full">✓ Logrado</span>`;
+    if (ok > 0 || INDS.some(i => ultimo[i] === 'ep')) return `<span class="chip chip-part">${ok}/4 logrado</span>`;
+    return `<span class="chip chip-none">✗ No logrado</span>`;
+  }
+
+  let html = _encabezadoPrint(
+    'Seguimiento pedagógico',
+    `${escuela ? escuela.nombre : 'Todas las escuelas'} · Historial completo`
+  );
+
+  let totalSecciones = 0;
+
+  cursos.forEach(curso => {
+    const mats = getMateriasDelCurso(curso.id);
+    const als  = state.alumnos.filter(a => a.cursoId === curso.id);
+    if (!als.length) return;
+
+    const escCurso = getEscuela(curso.escuelaId);
+
+    mats.forEach(mat => {
+      // Recolectar todas las fechas de esta materia/curso
+      const fechasSet = new Set();
+      als.forEach(al => {
+        const reg = state.seguimiento[al.id]?.[mat.id];
+        if (reg) Object.keys(reg).forEach(f => fechasSet.add(f));
+      });
+      const fechas = [...fechasSet].sort();
+      if (!fechas.length) return;
+      totalSecciones++;
+
+      html += `<h2>${escCurso ? escCurso.nombre + ' · ' : ''}${curso.nombre} — ${mat.nombre}</h2>`;
+      html += `<div style="font-size:9px;color:#888;margin-bottom:8px;">${fechas.length} fecha(s) registrada(s)</div>`;
+
+      // ── Vista por alumno (resumen + histórico) ──
+      html += `<table>
+        <thead><tr>
+          <th style="min-width:130px;">Alumno</th>
+          ${fechas.map(f => {
+            const tema = state.temas[`${curso.id}_${mat.id}_${f}`];
+            return `<th style="text-align:center;min-width:56px;">
+              ${f.slice(8,10)}/${f.slice(5,7)}
+              ${tema?.titulo ? `<br><span style="font-size:8px;color:#d4a017;font-weight:400;">${tema.titulo.slice(0,12)}${tema.titulo.length>12?'…':''}</span>` : ''}
+            </th>`;
+          }).join('')}
+          <th style="text-align:center;">Balance</th>
+          <th>Observación</th>
+        </tr>
+        <tr style="background:#f5f0e8;">
+          <th></th>
+          ${fechas.map(() => `<th style="text-align:center;font-size:8px;font-weight:400;color:#888;">
+            ${INDS.map(i => IND_SHORT[i][0]).join(' ')}
+          </th>`).join('')}
+          <th></th><th></th>
+        </tr></thead>
+        <tbody>
+        ${als.map(al => {
+          const reg = state.seguimiento[al.id]?.[mat.id] || {};
+          const registrosList = fechas.map(f => reg[f]).filter(Boolean);
+          // Última observación no vacía
+          const ultimaObs = fechas.slice().reverse().map(f => reg[f]?.obs).find(o => o && o.trim());
+
+          return `<tr>
+            <td>${al.nombre}</td>
+            ${fechas.map(f => {
+              const s = reg[f];
+              if (!s) return `<td style="text-align:center;color:#ccc;font-size:9px;">—</td>`;
+              return `<td style="text-align:center;font-size:10px;line-height:1.6;">
+                ${INDS.map(i => fmtInd(s[i])).join(' ')}
+              </td>`;
+            }).join('')}
+            <td style="text-align:center;">${chipSeg(registrosList)}</td>
+            <td class="obs-cell">${ultimaObs ? ultimaObs.slice(0,80)+(ultimaObs.length>80?'…':'') : ''}</td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>`;
+
+      // Leyenda de temas
+      const temasConNombre = fechas.filter(f => state.temas[`${curso.id}_${mat.id}_${f}`]?.titulo);
+      if (temasConNombre.length) {
+        html += `<div style="font-size:9px;color:#666;margin-bottom:14px;">
+          <strong>📖 Temas de clase:</strong><br>
+          ${temasConNombre.map(f => {
+            const t = state.temas[`${curso.id}_${mat.id}_${f}`];
+            return `<span style="margin-right:12px;">${f.slice(8,10)}/${f.slice(5,7)}: <em>${t.titulo}</em>${t.descripcion ? ' — ' + t.descripcion : ''}</span>`;
+          }).join('<br>')}
+        </div>`;
+      }
+
+      html += `<hr class="seccion-sep">`;
+    });
+  });
+
+  if (!totalSecciones) {
+    showToast('⚠️ No hay registros de seguimiento para imprimir');
+    return;
+  }
+
+  // Leyenda indicadores
+  html += `<div style="font-size:9px;color:#888;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;">
+    <strong>Indicadores:</strong>
+    <span class="ind-ok">✓</span> Logrado &nbsp;
+    <span class="ind-ep">~</span> En proceso &nbsp;
+    <span class="ind-no">✗</span> No logrado &nbsp;
+    <span class="ind-nd">·</span> Sin registro
+    &nbsp;&nbsp;
+    <strong>Columnas por fecha:</strong> I = Interpreta · A = Analiza · R = Resuelve · T = Transmite
+  </div>`;
+
+  _abrirVentanaPrint(html);
+  showToast('🖨️ Preparando impresión de seguimiento completo…');
+}
+
+// ── Genérico (para mapa u otras secciones) ───────────────────────
+function _imprimirGenerico(seccion) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('print-target'));
+  const el = document.getElementById('tab-' + seccion);
+  if (el) el.classList.add('print-target');
+  const hoy = new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const titulo = { mapa:'Mapa del aula' }[seccion] || seccion;
   let ph = document.getElementById('print-header-temp');
-  if(!ph){ ph=document.createElement('div'); ph.id='print-header-temp'; ph.className='print-header'; document.body.prepend(ph); }
-  ph.innerHTML = '<strong>ProfeDesk — '+titulo+'</strong> &nbsp;|&nbsp; '+hoy;
+  if (!ph) { ph = document.createElement('div'); ph.id = 'print-header-temp'; ph.className = 'print-header'; document.body.prepend(ph); }
+  ph.innerHTML = '<strong>ProfeDesk — ' + titulo + '</strong> &nbsp;|&nbsp; ' + hoy;
   window.print();
-  setTimeout(function(){ document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('print-target'); }); }, 1000);
+  setTimeout(() => { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('print-target')); }, 1000);
 }
 
 // ═══════════════════════════════════════════════════
