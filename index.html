@@ -5035,6 +5035,585 @@ window.addEventListener('beforeinstallprompt', function(e) {
     <div id="modal-sincro-body"></div>
   </div>
 </div>
+<!-- ================================================================
+  INSTRUCCIÓN ÚNICA:
+  Copiá todo el contenido de este archivo y pegalo en tu ProfeDesk.html
+  JUSTO ANTES de la última línea que dice </body>
+  
+  Eso es todo. No hay que tocar nada más.
+  ================================================================ -->
 
+<style>
+.ind-config-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:1.2rem;}
+.ind-config-title{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;}
+.ind-grid-config{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+@media(max-width:480px){.ind-grid-config{grid-template-columns:1fr;}}
+.ind-edit-box{display:flex;align-items:center;gap:.5rem;padding:.55rem .85rem;border-radius:10px;border:1.5px solid var(--border);background:var(--paper);transition:all .2s;}
+.ind-edit-box:focus-within{border-color:var(--gold);box-shadow:0 2px 8px rgba(212,160,23,.18);background:var(--card);}
+.ind-edit-emoji{font-size:1.15rem;flex-shrink:0;line-height:1;}
+.ind-edit-inner{flex:1;min-width:0;}
+.ind-edit-input{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;color:var(--ink);width:100%;padding:0;display:block;}
+.ind-edit-input:focus{outline:none;}
+.ind-edit-hint{font-size:.66rem;color:var(--muted);margin-top:.1rem;display:block;}
+.ind-edit-reset{background:none;border:none;cursor:pointer;font-size:.85rem;color:var(--muted);padding:.1rem .4rem;border-radius:4px;flex-shrink:0;opacity:0;transition:opacity .2s;}
+.ind-edit-box:hover .ind-edit-reset,.ind-edit-box:focus-within .ind-edit-reset{opacity:1;}
+.ind-edit-reset:hover{background:var(--border);color:var(--ink);}
+</style>
+
+<script>
+(function(){
+
+/* ── 1. Datos por defecto y persistencia ── */
+var DEFS = [
+  {key:'interpreta', emoji:'🧠', label:'Interpreta',  hint:'Comprensión e interpretación'},
+  {key:'analiza',    emoji:'🔍', label:'Analiza',     hint:'Análisis y pensamiento crítico'},
+  {key:'resuelve',   emoji:'⚙️', label:'Resuelve',    hint:'Resolución de situaciones'},
+  {key:'transmite',  emoji:'💬', label:'Transmite',   hint:'Comunicación de ideas'},
+];
+var LS = 'pd_indicadores_v1';
+
+function cargar() {
+  try {
+    var raw = localStorage.getItem(LS);
+    if (!raw) return DEFS.map(function(d){ return Object.assign({},d); });
+    var saved = JSON.parse(raw);
+    return DEFS.map(function(d,i){
+      return Object.assign({},d,{
+        label: (saved[i]&&saved[i].label&&saved[i].label.trim()) ? saved[i].label.trim() : d.label
+      });
+    });
+  } catch(e) { return DEFS.map(function(d){ return Object.assign({},d); }); }
+}
+
+function guardar() {
+  localStorage.setItem(LS, JSON.stringify(
+    window._inds.map(function(i){ return {key:i.key, label:i.label}; })
+  ));
+}
+
+window._inds = cargar();
+
+/* ── 2. Inyectar el panel en la pestaña Seguimiento ── */
+function inyectarPanel() {
+  if (document.getElementById('ind-config-panel')) return;
+  var filtro = document.getElementById('filtro-seg-pills');
+  if (!filtro) return;
+  var panel = document.createElement('div');
+  panel.id = 'ind-config-panel';
+  panel.className = 'ind-config-panel';
+  filtro.parentNode.insertBefore(panel, filtro);
+}
+
+/* ── 3. Renderizar el panel ── */
+window.renderIndConfigPanel = function() {
+  inyectarPanel();
+  var panel = document.getElementById('ind-config-panel');
+  if (!panel) return;
+
+  panel.innerHTML =
+    '<div class="ind-config-title">' +
+      '<span>⚙️ Mis indicadores de seguimiento</span>' +
+      '<span style="font-size:.72rem;color:var(--muted);font-weight:400;">Escribí el nombre de cada uno — se guarda automáticamente</span>' +
+    '</div>' +
+    '<div class="ind-grid-config">' +
+    window._inds.map(function(ind, i) {
+      return '<div class="ind-edit-box">' +
+        '<span class="ind-edit-emoji">' + ind.emoji + '</span>' +
+        '<div class="ind-edit-inner">' +
+          '<input class="ind-edit-input" id="ind-inp-' + i + '"' +
+            ' value="' + ind.label.replace(/"/g,'&quot;') + '"' +
+            ' placeholder="' + DEFS[i].label + '"' +
+            ' maxlength="35"' +
+            ' title="' + ind.hint + '"' +
+            ' oninput="window._indCambio(' + i + ',this.value)">' +
+          '<span class="ind-edit-hint">' + ind.hint + '</span>' +
+        '</div>' +
+        '<button class="ind-edit-reset" onclick="window._indReset(' + i + ')" title="Restaurar nombre original">↺</button>' +
+      '</div>';
+    }).join('') +
+    '</div>';
+
+  actualizarEncabezados();
+};
+
+/* ── 4. Cuando el usuario escribe ── */
+window._indCambio = function(idx, valor) {
+  window._inds[idx].label = valor.trim() || DEFS[idx].label;
+  guardar();
+  actualizarEncabezados();
+};
+
+/* ── 5. Restaurar a default ── */
+window._indReset = function(idx) {
+  window._inds[idx].label = DEFS[idx].label;
+  guardar();
+  var inp = document.getElementById('ind-inp-' + idx);
+  if (inp) inp.value = DEFS[idx].label;
+  actualizarEncabezados();
+  if (typeof showToast === 'function') showToast('↺ Restaurado: "' + DEFS[idx].label + '"');
+};
+
+/* ── 6. Actualizar los 4 encabezados de la tabla ── */
+function actualizarEncabezados() {
+  // Encabezados con id h-ind-0..3
+  window._inds.forEach(function(ind, i) {
+    var el = document.getElementById('h-ind-' + i);
+    if (el) el.textContent = ind.emoji + ' ' + ind.label.toUpperCase();
+  });
+
+  // Encabezados sin id (compatibilidad con versión original)
+  // busca dentro del seg-indicador-header
+  var header = document.querySelector('.seg-indicador-header');
+  if (header) {
+    var indNames = header.querySelectorAll('.ind-name');
+    indNames.forEach(function(el, i) {
+      if (window._inds[i]) el.textContent = window._inds[i].emoji + ' ' + window._inds[i].label.toUpperCase();
+    });
+  }
+
+  // Labels en el modo mobile de la tabla (ind-label-mobile)
+  document.querySelectorAll('.ind-label-mobile').forEach(function(el, idx) {
+    var i = idx % 4;
+    if (window._inds[i]) el.textContent = window._inds[i].emoji + ' ' + window._inds[i].label;
+  });
+}
+
+/* ── 7. Parchear goTab para mostrar el panel al entrar a Seguimiento ── */
+var _goTabOrig = window.goTab;
+if (typeof _goTabOrig === 'function') {
+  window.goTab = function(name, el) {
+    _goTabOrig(name, el);
+    if (name === 'seguimiento') {
+      // pequeño delay para que el DOM esté listo
+      setTimeout(window.renderIndConfigPanel, 50);
+    }
+  };
+}
+
+/* también bnavGo (mobile) */
+var _bnavGoOrig = window.bnavGo;
+if (typeof _bnavGoOrig === 'function') {
+  window.bnavGo = function(name, idx) {
+    _bnavGoOrig(name, idx);
+    if (name === 'seguimiento') setTimeout(window.renderIndConfigPanel, 50);
+  };
+}
+
+/* ── 8. Parchear abrirDetalleSeg para usar nombres editables en el modal ── */
+var _abrirDetOrig = window.abrirDetalleSeg;
+if (typeof _abrirDetOrig === 'function') {
+  window.abrirDetalleSeg = function(alumnoId) {
+    _abrirDetOrig(alumnoId);
+    // Después de que el modal renderizó, actualizar títulos de tarjetas
+    setTimeout(function() {
+      window._inds.forEach(function(ind) {
+        // det-ind-card: el elemento anterior al primer det-btn es det-ind-name
+        var btnOk = document.getElementById('det-' + ind.key + '-ok');
+        if (btnOk) {
+          var card = btnOk.closest('.det-ind-card');
+          if (card) {
+            var nameEl = card.querySelector('.det-ind-name');
+            if (nameEl) nameEl.textContent = ind.emoji + ' ' + ind.label;
+          }
+        }
+      });
+    }, 60);
+  };
+}
+
+/* ── 9. Parchear renderSeguimiento para actualizar encabezados después ── */
+var _renderSegOrig = window.renderSeguimiento;
+if (typeof _renderSegOrig === 'function') {
+  window.renderSeguimiento = function() {
+    _renderSegOrig();
+    setTimeout(actualizarEncabezados, 30);
+  };
+}
+
+/* ── 10. Si la pestaña Seguimiento ya estaba activa al cargar ── */
+setTimeout(function() {
+  actualizarEncabezados();
+  var tabSeg = document.getElementById('tab-seguimiento');
+  if (tabSeg && tabSeg.classList.contains('active')) {
+    window.renderIndConfigPanel();
+  }
+}, 200);
+
+})();
+</script>
+  <!-- ================================================================
+  INSTRUCCIÓN ÚNICA:
+  Copiá todo el contenido de este archivo y pegalo en tu ProfeDesk.html
+  JUSTO ANTES de la última línea que dice </body>
+  (si ya pegaste el parche de indicadores, pegá esto DESPUÉS de ese bloque)
+  ================================================================ -->
+
+<style>
+/* Botones de letra en asistencia */
+.letra-btns {
+  display: flex;
+  gap: .3rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.letra-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 .5rem;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: .02em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.letra-btn:hover { transform: scale(1.08); }
+.letra-btn.sel-letra {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: white;
+}
+/* Configuración de letras */
+.letras-config-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1rem;
+}
+.letras-config-title {
+  font-family: 'Playfair Display', serif;
+  font-size: .95rem;
+  margin-bottom: .7rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+.letras-grid {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.letra-item {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  align-items: center;
+  position: relative;
+}
+.letra-item label {
+  font-size: .64rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.letra-item input {
+  width: 52px;
+  text-align: center;
+  font-weight: 700;
+  font-size: .85rem;
+  padding: .35rem .3rem;
+  text-transform: uppercase;
+}
+.letra-item .btn-del-letra {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .75rem;
+  color: var(--muted);
+  padding: .1rem;
+  line-height: 1;
+}
+.letra-item .btn-del-letra:hover { color: var(--accent); }
+.btn-add-letra {
+  background: none;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: .35rem .8rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .2s;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: 1.1rem;
+}
+.btn-add-letra:hover { border-color: var(--gold); color: var(--ink); }
+
+/* Badge de letra en historial */
+.hist-letra {
+  display: inline-block;
+  min-width: 22px;
+  text-align: center;
+  padding: .1rem .3rem;
+  border-radius: 5px;
+  font-size: .75rem;
+  font-weight: 700;
+  background: rgba(26,26,46,.08);
+  color: var(--ink);
+}
+</style>
+
+<script>
+(function(){
+
+/* ══════════════════════════════════════════════════════════════
+   PARCHE: notas por letra en asistencia
+   ══════════════════════════════════════════════════════════════ */
+
+var LS_LETRAS = 'pd_letras_v1';
+
+/* Letras por defecto */
+var LETRAS_DEFAULT = [
+  { id: 'A', label: 'A' },
+  { id: 'B', label: 'B' },
+  { id: 'C', label: 'C' },
+  { id: 'NA', label: 'N/A' },
+];
+
+function cargarLetras() {
+  try {
+    var raw = localStorage.getItem(LS_LETRAS);
+    if (!raw) return LETRAS_DEFAULT.map(function(l){ return Object.assign({}, l); });
+    return JSON.parse(raw);
+  } catch(e) { return LETRAS_DEFAULT.map(function(l){ return Object.assign({}, l); }); }
+}
+
+function guardarLetras() {
+  localStorage.setItem(LS_LETRAS, JSON.stringify(window._letras));
+}
+
+window._letras = cargarLetras();
+
+/* ── Panel de configuración de letras ── */
+function inyectarConfigLetras() {
+  if (document.getElementById('letras-config-panel')) return;
+  // Buscamos el card de asistencia (el primero dentro de tab-asistencia)
+  var tabAsist = document.getElementById('tab-asistencia');
+  if (!tabAsist) return;
+  var card = tabAsist.querySelector('.card');
+  if (!card) return;
+
+  var panel = document.createElement('div');
+  panel.id = 'letras-config-panel';
+  panel.className = 'letras-config-panel';
+  // Insertar después del primer card
+  card.parentNode.insertBefore(panel, card.nextSibling);
+  renderLetrasPanel();
+}
+
+function renderLetrasPanel() {
+  var panel = document.getElementById('letras-config-panel');
+  if (!panel) return;
+
+  var itemsHtml = window._letras.map(function(l, i) {
+    return '<div class="letra-item">' +
+      '<label>Letra ' + (i+1) + '</label>' +
+      '<input type="text" maxlength="4"' +
+        ' value="' + l.label.replace(/"/g,'&quot;') + '"' +
+        ' oninput="window._letraCambio(' + i + ',this.value)"' +
+        ' style="text-transform:uppercase;">' +
+      '<button class="btn-del-letra" onclick="window._letraEliminar(' + i + ')" title="Eliminar">✕</button>' +
+    '</div>';
+  }).join('');
+
+  panel.innerHTML =
+    '<div class="letras-config-title">' +
+      '<span>🔤 Mis letras de calificación</span>' +
+      '<span style="font-size:.72rem;color:var(--muted);font-weight:400;">' +
+        'Personalizá las letras que usás para calificar en clase' +
+      '</span>' +
+    '</div>' +
+    '<div class="letras-grid" id="letras-grid">' +
+      itemsHtml +
+      '<button class="btn-add-letra" onclick="window._letraAgregar()">+ Agregar</button>' +
+    '</div>';
+}
+
+window._letraCambio = function(idx, valor) {
+  window._letras[idx].label = valor.toUpperCase().trim() || window._letras[idx].id;
+  window._letras[idx].id    = window._letras[idx].label;
+  guardarLetras();
+  // Re-renderizar lista de asistencia para actualizar botones
+  if (typeof renderAsistLista === 'function') renderAsistLista();
+};
+
+window._letraEliminar = function(idx) {
+  if (window._letras.length <= 1) {
+    if (typeof showToast === 'function') showToast('⚠️ Debe haber al menos una letra');
+    return;
+  }
+  window._letras.splice(idx, 1);
+  guardarLetras();
+  renderLetrasPanel();
+  if (typeof renderAsistLista === 'function') renderAsistLista();
+};
+
+window._letraAgregar = function() {
+  if (window._letras.length >= 8) {
+    if (typeof showToast === 'function') showToast('⚠️ Máximo 8 letras');
+    return;
+  }
+  var nueva = 'D';
+  window._letras.push({ id: nueva, label: nueva });
+  guardarLetras();
+  renderLetrasPanel();
+  if (typeof renderAsistLista === 'function') renderAsistLista();
+};
+
+/* ── Parchear renderAsistLista para usar letras ── */
+var _renderAsistOrig = window.renderAsistLista;
+if (typeof _renderAsistOrig === 'function') {
+  window.renderAsistLista = function() {
+    _renderAsistOrig();
+    // Reemplazar cada nota-inline por botones de letra
+    reemplazarNotasConLetras();
+  };
+}
+
+function reemplazarNotasConLetras() {
+  var filas = document.querySelectorAll('.asist-row');
+  if (!filas.length) return;
+
+  filas.forEach(function(fila) {
+    // Identificar el alumnoId desde el id de la fila
+    var rowId = fila.id; // "asist-row-123"
+    if (!rowId || !rowId.startsWith('asist-row-')) return;
+    var alumnoId = parseInt(rowId.replace('asist-row-', ''));
+
+    // Encontrar el contenedor de la nota (tiene el input.nota-inline)
+    var notaWrap = fila.querySelector('.nota-inline')
+                   ? fila.querySelector('.nota-inline').parentNode
+                   : null;
+    if (!notaWrap) return;
+
+    // Valor actual guardado en asistTemp
+    var estadoActual = (window.state && window.state.asistTemp && window.state.asistTemp[alumnoId])
+                       ? window.state.asistTemp[alumnoId].nota
+                       : null;
+    // La nota puede ser string (letra) o number (legado)
+    var letraActual = estadoActual != null ? String(estadoActual) : null;
+
+    // Construir los botones
+    var btnsHtml = '<div class="letra-btns" id="letra-btns-' + alumnoId + '">' +
+      window._letras.map(function(l) {
+        var sel = letraActual === l.label ? ' sel-letra' : '';
+        return '<button class="letra-btn' + sel + '"' +
+          ' onclick="window._setLetra(' + alumnoId + ',\'' + l.label.replace(/'/g,"\\'") + '\',this)">' +
+          l.label + '</button>';
+      }).join('') +
+    '</div>' +
+    '<span class="nota-inline-label">Calificación</span>';
+
+    notaWrap.innerHTML = btnsHtml;
+  });
+}
+
+/* ── setLetra: guardar la letra en asistTemp ── */
+window._setLetra = function(alumnoId, letra, btnEl) {
+  if (!window.state || !window.state.asistTemp) return;
+  var actual = window.state.asistTemp[alumnoId];
+  if (!actual) return;
+
+  // Toggle: si ya estaba seleccionada, la quita
+  var yaEsta = actual.nota === letra;
+  actual.nota = yaEsta ? null : letra;
+
+  // Actualizar visualmente los botones
+  var contenedor = document.getElementById('letra-btns-' + alumnoId);
+  if (contenedor) {
+    contenedor.querySelectorAll('.letra-btn').forEach(function(b) {
+      b.classList.remove('sel-letra');
+    });
+    if (!yaEsta) btnEl.classList.add('sel-letra');
+  }
+};
+
+/* ── Parchear renderHistorial para mostrar letras correctamente ── */
+var _renderHistOrig = window.renderHistorial;
+if (typeof _renderHistOrig === 'function') {
+  window.renderHistorial = function() {
+    _renderHistOrig();
+    // El historial ya muestra notas — si son letras las mostramos con el badge de letra
+    // No requiere cambios adicionales porque ya lee el valor guardado
+  };
+}
+
+/* ── Parchear exportarCSV para exportar letras correctamente ── */
+// El exportarCSV original ya usa d.nota — si nota es "A" lo exporta como "A". OK.
+
+/* ── Mostrar letras correctamente en el historial (columna Notas clase) ── */
+// El historial usa promNotas = promedio numérico. Con letras no aplica.
+// Parchear para mostrar la última letra en lugar del promedio.
+var _renderHistOrig2 = window.renderHistorial;
+if (typeof _renderHistOrig2 === 'function') {
+  window.renderHistorial = function() {
+    _renderHistOrig2();
+    // Después del render, reemplazar celdas de "notas clase" si contienen letras
+    setTimeout(function() {
+      document.querySelectorAll('.hist-table tbody tr').forEach(function(tr) {
+        var lastTd = tr.querySelector('td:last-child');
+        if (!lastTd) return;
+        var badge = lastTd.querySelector('.nota-badge');
+        if (!badge) return;
+        var val = badge.textContent.trim();
+        // Si es una letra (no número), mostrar con estilo de letra
+        if (isNaN(parseFloat(val))) {
+          badge.className = 'hist-letra';
+        }
+      });
+    }, 100);
+  };
+}
+
+/* ── Inicializar cuando se abre la pestaña de asistencia ── */
+var _goTabOrig = window.goTab;
+if (typeof _goTabOrig === 'function') {
+  window.goTab = function(name, el) {
+    _goTabOrig(name, el);
+    if (name === 'asistencia') {
+      setTimeout(function() {
+        inyectarConfigLetras();
+      }, 50);
+    }
+  };
+}
+
+/* también bnavGo (mobile) */
+var _bnavGoOrig = window.bnavGo;
+if (typeof _bnavGoOrig === 'function') {
+  window.bnavGo = function(name, idx) {
+    _bnavGoOrig(name, idx);
+    if (name === 'asistencia') setTimeout(inyectarConfigLetras, 50);
+  };
+}
+
+/* Si la pestaña ya está activa al cargar */
+setTimeout(function() {
+  var tabAsist = document.getElementById('tab-asistencia');
+  if (tabAsist && tabAsist.classList.contains('active')) {
+    inyectarConfigLetras();
+  }
+}, 300);
+
+console.log('✅ ProfeDesk: calificación por letras activada');
+
+})();
+</script>
 </body>
 </html>
