@@ -5615,5 +5615,411 @@ console.log('✅ ProfeDesk: calificación por letras activada');
 
 })();
 </script>
+  <!-- ================================================================
+  INSTRUCCIÓN ÚNICA:
+  Pegá todo este contenido en tu ProfeDesk.html JUSTO ANTES de </body>
+  ================================================================ -->
+
+<style>
+/* Estado de asistencia en la fila de seguimiento */
+.seg-asist-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .2rem .55rem;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.sab-P { background: rgba(74,124,89,.14);  color: #2d5e38; }
+.sab-A { background: rgba(192,57,43,.12);  color: #8b1e10; }
+.sab-T { background: rgba(212,160,23,.14); color: #7a5800; }
+.sab-N { background: var(--border);        color: var(--muted); }
+
+/* Barra de info del día en seguimiento (tema + asistencia global) */
+.seg-dia-bar {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: .55rem .9rem;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  margin-bottom: .7rem;
+  flex-wrap: wrap;
+  font-size: .82rem;
+}
+.seg-dia-bar .sdb-tema {
+  flex: 1;
+  min-width: 0;
+}
+.seg-dia-bar .sdb-titulo {
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.seg-dia-bar .sdb-desc {
+  font-size: .74rem;
+  color: var(--muted);
+  margin-top: .05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.seg-dia-bar .sdb-stats {
+  display: flex;
+  gap: .4rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.seg-dia-bar .sdb-chip {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .18rem .5rem;
+  border-radius: 20px;
+}
+.sdb-P { background: rgba(74,124,89,.13);  color: #2d5e38; }
+.sdb-A { background: rgba(192,57,43,.11);  color: #8b1e10; }
+.sdb-T { background: rgba(212,160,23,.13); color: #7a5800; }
+.sdb-nodata { color: var(--muted); font-style: italic; font-size: .76rem; }
+
+/* Ajuste de la grilla de seguimiento: columna extra para asistencia */
+.seg-indicador-header,
+.seg-row {
+  /* Agregar columna de asistencia al final de la definición existente */
+}
+/* Columna asistencia visible en la fila */
+.seg-asist-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
+
+<script>
+(function () {
+
+/* ══════════════════════════════════════════════════════════════
+   PARCHE: sincronización Asistencia ↔ Seguimiento
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Helpers ───────────────────────────────────────────────── */
+
+/**
+ * Dado un cursoId, materiaId y fecha, devuelve el registro de asistencia
+ * del curso completo: { alumnoId: {estado, nota} }
+ */
+function getAsistenciaDia(cursoId, materiaId, fecha) {
+  if (!window.state || !cursoId || !materiaId || !fecha) return {};
+  var key = cursoId + '_' + materiaId + '_' + fecha;
+  return window.state.asistencia[key] || {};
+}
+
+/**
+ * Devuelve el estado de asistencia de un alumno en un día dado.
+ * Devuelve 'P', 'A', 'T' o null.
+ */
+function estadoAlumnoDia(alumnoId, cursoId, materiaId, fecha) {
+  var reg = getAsistenciaDia(cursoId, materiaId, fecha);
+  var d = reg[alumnoId];
+  if (!d) return null;
+  return typeof d === 'object' ? d.estado : d;
+}
+
+/**
+ * Devuelve el tema guardado para una clave dada.
+ * La clave es la misma que usa asistencia: cursoId_materiaId_fecha
+ */
+function getTemaDelDia(cursoId, materiaId, fecha) {
+  if (!window.state || !cursoId || !materiaId || !fecha) return null;
+  var key = cursoId + '_' + materiaId + '_' + fecha;
+  return window.state.temas && window.state.temas[key] ? window.state.temas[key] : null;
+}
+
+/** Badge de asistencia individual */
+function badgeAsist(estado) {
+  if (!estado) return '<span class="seg-asist-badge sab-N">—</span>';
+  var map = {
+    P: '<span class="seg-asist-badge sab-P">✓ Presente</span>',
+    A: '<span class="seg-asist-badge sab-A">✗ Ausente</span>',
+    T: '<span class="seg-asist-badge sab-T">T Tarde</span>',
+  };
+  return map[estado] || '<span class="seg-asist-badge sab-N">—</span>';
+}
+
+/* ── Barra informativa del día (tema + totales asistencia) ── */
+
+function renderSegDiaBar(cursoId, materiaId, fecha) {
+  // Eliminar barra previa
+  var prev = document.getElementById('seg-dia-bar');
+  if (prev) prev.remove();
+
+  if (!cursoId || !materiaId || !fecha) return;
+
+  var tema = getTemaDelDia(cursoId, materiaId, fecha);
+  var asistDia = getAsistenciaDia(cursoId, materiaId, fecha);
+  var als = window.state ? window.state.alumnos.filter(function(a){ return a.cursoId === cursoId; }) : [];
+
+  var P = 0, A = 0, T = 0;
+  als.forEach(function(al) {
+    var e = estadoAlumnoDia(al.id, cursoId, materiaId, fecha);
+    if (e === 'P') P++;
+    else if (e === 'A') A++;
+    else if (e === 'T') T++;
+  });
+
+  var bar = document.createElement('div');
+  bar.id = 'seg-dia-bar';
+  bar.className = 'seg-dia-bar';
+
+  // Sección del tema
+  var temaHtml = '';
+  if (tema && tema.titulo) {
+    temaHtml =
+      '<div class="sdb-tema">' +
+        '<div class="sdb-titulo">📖 ' + _esc(tema.titulo) + '</div>' +
+        (tema.descripcion ? '<div class="sdb-desc">🎯 ' + _esc(tema.descripcion) + '</div>' : '') +
+      '</div>';
+  } else {
+    temaHtml = '<div class="sdb-tema sdb-nodata">Sin tema registrado para esta fecha</div>';
+  }
+
+  // Sección de totales de asistencia
+  var statsHtml = '';
+  if (als.length && (P || A || T)) {
+    statsHtml =
+      '<div class="sdb-stats">' +
+        (P ? '<span class="sdb-chip sdb-P">✓ ' + P + '</span>' : '') +
+        (A ? '<span class="sdb-chip sdb-A">✗ ' + A + '</span>' : '') +
+        (T ? '<span class="sdb-chip sdb-T">T ' + T + '</span>' : '') +
+        '<span style="font-size:.7rem;color:var(--muted);">/ ' + als.length + '</span>' +
+      '</div>';
+  } else if (als.length) {
+    statsHtml = '<span class="sdb-nodata">Sin asistencia registrada este día</span>';
+  }
+
+  bar.innerHTML = temaHtml + statsHtml;
+
+  // Insertar antes de la lista de seguimiento
+  var segLista = document.getElementById('seg-lista');
+  if (segLista && segLista.parentNode) {
+    segLista.parentNode.insertBefore(bar, segLista);
+  }
+}
+
+function _esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ── Sincronizar campos de tema en Seguimiento desde Asistencia ── */
+
+function sincronizarTemaEnSeg(cursoId, materiaId, fecha) {
+  var tema = getTemaDelDia(cursoId, materiaId, fecha);
+  var inpTitulo = document.getElementById('seg-tema-titulo');
+  var inpDesc   = document.getElementById('seg-tema-desc');
+  if (!inpTitulo || !inpDesc) return;
+
+  if (tema) {
+    inpTitulo.value = tema.titulo    || '';
+    inpDesc.value   = tema.descripcion || '';
+  } else {
+    inpTitulo.value = '';
+    inpDesc.value   = '';
+  }
+}
+
+/* ── Parchear renderSeguimiento para inyectar estado de asistencia ── */
+
+var _renderSegOrig = window.renderSeguimiento;
+if (typeof _renderSegOrig === 'function') {
+  window.renderSeguimiento = function() {
+    _renderSegOrig();
+
+    var cursoId   = parseInt(document.getElementById('seg-curso')  ? document.getElementById('seg-curso').value   : 0);
+    var materiaId = parseInt(document.getElementById('seg-materia') ? document.getElementById('seg-materia').value : 0);
+    var fecha     = document.getElementById('seg-fecha') ? document.getElementById('seg-fecha').value : '';
+
+    // 1. Sincronizar tema
+    sincronizarTemaEnSeg(cursoId, materiaId, fecha);
+
+    // 2. Barra del día
+    renderSegDiaBar(cursoId, materiaId, fecha);
+
+    // 3. Inyectar badge de asistencia en cada fila
+    if (!cursoId || !materiaId || !fecha) return;
+
+    var als = window.state ? window.state.alumnos.filter(function(a){ return a.cursoId === cursoId; }) : [];
+    als.forEach(function(al) {
+      var fila = document.getElementById('seg-row-' + al.id);
+      if (!fila) return;
+
+      // Evitar duplicados
+      var prev = fila.querySelector('.seg-asist-col');
+      if (prev) prev.remove();
+
+      var estado = estadoAlumnoDia(al.id, cursoId, materiaId, fecha);
+
+      // Crear celda de asistencia
+      var col = document.createElement('div');
+      col.className = 'seg-asist-col';
+      col.innerHTML = badgeAsist(estado);
+
+      // Insertar como primer elemento después del nombre del alumno
+      var alumnoCell = fila.querySelector('.seg-alumno-cell');
+      if (alumnoCell && alumnoCell.nextSibling) {
+        fila.insertBefore(col, alumnoCell.nextSibling);
+      } else if (alumnoCell) {
+        fila.appendChild(col);
+      }
+    });
+  };
+}
+
+/* ── Parchear cargarTemaSeg para leer desde el mismo key que asistencia ── */
+
+window.cargarTemaSeg = function() {
+  var cursoId   = document.getElementById('seg-curso')  ? document.getElementById('seg-curso').value   : null;
+  var materiaId = document.getElementById('seg-materia') ? document.getElementById('seg-materia').value : null;
+  var fecha     = document.getElementById('seg-fecha')   ? document.getElementById('seg-fecha').value   : null;
+  if (!cursoId || !materiaId || !fecha) return;
+
+  // La clave es la misma que usa asistencia
+  var key = cursoId + '_' + materiaId + '_' + fecha;
+  var t = (window.state && window.state.temas && window.state.temas[key]) || {};
+
+  var inpTitulo = document.getElementById('seg-tema-titulo');
+  var inpDesc   = document.getElementById('seg-tema-desc');
+  if (inpTitulo) inpTitulo.value = t.titulo      || '';
+  if (inpDesc)   inpDesc.value   = t.descripcion || '';
+};
+
+/* ── Parchear guardarTemaSegAuto para escribir en la misma clave ── */
+
+var _temaSegTimerPatch = null;
+window.guardarTemaSegAuto = function() {
+  clearTimeout(_temaSegTimerPatch);
+  _temaSegTimerPatch = setTimeout(function() {
+    var cursoId   = document.getElementById('seg-curso')  ? document.getElementById('seg-curso').value   : null;
+    var materiaId = document.getElementById('seg-materia') ? document.getElementById('seg-materia').value : null;
+    var fecha     = document.getElementById('seg-fecha')   ? document.getElementById('seg-fecha').value   : null;
+    if (!cursoId || !materiaId || !fecha) return;
+
+    // Misma clave que asistencia
+    var key = cursoId + '_' + materiaId + '_' + fecha;
+    if (!window.state.temas) window.state.temas = {};
+    if (!window.state.temas[key]) window.state.temas[key] = {};
+    window.state.temas[key].titulo      = (document.getElementById('seg-tema-titulo') || {}).value || '';
+    window.state.temas[key].descripcion = (document.getElementById('seg-tema-desc')   || {}).value || '';
+
+    if (typeof saveLS === 'function') saveLS();
+
+    // Si asistencia está mostrando la misma fecha/curso/materia, sincronizar
+    var asistFecha    = document.getElementById('asist-fecha')   ? document.getElementById('asist-fecha').value   : null;
+    var asistCurso    = document.getElementById('asist-curso')   ? document.getElementById('asist-curso').value   : null;
+    var asistMateria  = document.getElementById('asist-materia') ? document.getElementById('asist-materia').value : null;
+    if (asistFecha === fecha && String(asistCurso) === String(cursoId) && String(asistMateria) === String(materiaId)) {
+      var ti = document.getElementById('asist-tema-titulo');
+      var td = document.getElementById('asist-tema-desc');
+      if (ti) ti.value = window.state.temas[key].titulo;
+      if (td) td.value = window.state.temas[key].descripcion;
+    }
+  }, 600);
+};
+
+/* ── Parchear guardarTemaAuto (en asistencia) para también reflejar en seg ── */
+
+var _temaAsistTimerPatch = null;
+var _guardarTemaAutoOrig = window.guardarTemaAuto;
+window.guardarTemaAuto = function() {
+  // Ejecutar el original
+  if (typeof _guardarTemaAutoOrig === 'function') _guardarTemaAutoOrig();
+
+  // Adicionalmente: si seguimiento muestra la misma fecha/curso/materia, sincronizar
+  clearTimeout(_temaAsistTimerPatch);
+  _temaAsistTimerPatch = setTimeout(function() {
+    var asistFecha   = document.getElementById('asist-fecha')   ? document.getElementById('asist-fecha').value   : null;
+    var asistCurso   = document.getElementById('asist-curso')   ? document.getElementById('asist-curso').value   : null;
+    var asistMateria = document.getElementById('asist-materia') ? document.getElementById('asist-materia').value : null;
+
+    var segFecha   = document.getElementById('seg-fecha')   ? document.getElementById('seg-fecha').value   : null;
+    var segCurso   = document.getElementById('seg-curso')   ? document.getElementById('seg-curso').value   : null;
+    var segMateria = document.getElementById('seg-materia') ? document.getElementById('seg-materia').value : null;
+
+    if (asistFecha && asistFecha === segFecha &&
+        String(asistCurso) === String(segCurso) &&
+        String(asistMateria) === String(segMateria)) {
+      var key = asistCurso + '_' + asistMateria + '_' + asistFecha;
+      var t = (window.state && window.state.temas && window.state.temas[key]) || {};
+      var ti = document.getElementById('seg-tema-titulo');
+      var td = document.getElementById('seg-tema-desc');
+      if (ti) ti.value = t.titulo || '';
+      if (td) td.value = t.descripcion || '';
+    }
+  }, 700);
+};
+
+/* ── Parchear cambios de fecha/curso/materia en seguimiento ── */
+// Cuando cambia la fecha en seguimiento, re-cargar tema y barra del día
+
+function patchearSelectsSeg() {
+  var selFecha   = document.getElementById('seg-fecha');
+  var selCurso   = document.getElementById('seg-curso');
+  var selMateria = document.getElementById('seg-materia');
+
+  function onCambio() {
+    // cargarTemaSeg ya está parcheada arriba, se llama desde el HTML original
+    // Pero también actualizamos la barra manualmente por si acaso
+    setTimeout(function() {
+      var cid = parseInt(selCurso   ? selCurso.value   : 0);
+      var mid = parseInt(selMateria ? selMateria.value : 0);
+      var f   = selFecha ? selFecha.value : '';
+      sincronizarTemaEnSeg(cid, mid, f);
+      renderSegDiaBar(cid, mid, f);
+    }, 100);
+  }
+
+  if (selFecha   && !selFecha._patchAsist)   { selFecha.addEventListener('change',   onCambio); selFecha._patchAsist   = true; }
+  if (selCurso   && !selCurso._patchAsist)   { selCurso.addEventListener('change',   onCambio); selCurso._patchAsist   = true; }
+  if (selMateria && !selMateria._patchAsist) { selMateria.addEventListener('change', onCambio); selMateria._patchAsist = true; }
+}
+
+/* ── Parchear goTab / bnavGo para inicializar al entrar a seguimiento ── */
+
+var _goTabOrig2 = window.goTab;
+if (typeof _goTabOrig2 === 'function') {
+  window.goTab = function(name, el) {
+    _goTabOrig2(name, el);
+    if (name === 'seguimiento') {
+      setTimeout(patchearSelectsSeg, 80);
+    }
+  };
+}
+
+var _bnavGoOrig2 = window.bnavGo;
+if (typeof _bnavGoOrig2 === 'function') {
+  window.bnavGo = function(name, idx) {
+    _bnavGoOrig2(name, idx);
+    if (name === 'seguimiento') setTimeout(patchearSelectsSeg, 80);
+  };
+}
+
+/* Inicializar si seguimiento ya está activo */
+setTimeout(function() {
+  var tabSeg = document.getElementById('tab-seguimiento');
+  if (tabSeg && tabSeg.classList.contains('active')) {
+    patchearSelectsSeg();
+  }
+}, 300);
+
+console.log('✅ ProfeDesk: asistencia + tema sincronizados en seguimiento');
+
+})();
+</script>
 </body>
 </html>
