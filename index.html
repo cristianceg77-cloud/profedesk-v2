@@ -224,7 +224,6 @@
   .db-ok{background:rgba(74,124,89,.1);color:var(--sage);}
   .db-past{background:var(--border);color:var(--muted);}
 
-
   /* ══════════════════════════════
      HORARIO
   ══════════════════════════════ */
@@ -548,29 +547,6 @@
   .mapa-grid{display:grid;gap:6px;margin-top:.8rem;}
   .mapa-cell{border-radius:10px;border:2px solid var(--border);background:var(--card);padding:.4rem .35rem;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:64px;position:relative;transition:all .2s;cursor:pointer;text-align:center;}
   .mapa-cell.ocupado{border-color:rgba(74,124,89,.5);background:rgba(74,124,89,.07);}
-  .mapa-cell.bloqueado{background:var(--border);opacity:.45;cursor:default;}
-  .mapa-cell.presente{border-color:var(--sage);background:rgba(74,124,89,.15);}
-  .mapa-cell.ausente{border-color:var(--accent);background:rgba(192,57,43,.1);}
-  .mapa-cell.tarde{border-color:var(--gold);background:rgba(212,160,23,.12);}
-  .mapa-cell:hover:not(.bloqueado){box-shadow:0 3px 10px rgba(0,0,0,.1);transform:translateY(-1px);}
-  .mapa-cell-nombre{font-size:.72rem;font-weight:700;line-height:1.2;color:var(--ink);word-break:break-word;}
-  .mapa-cell-ico{font-size:1rem;margin-bottom:.15rem;line-height:1;}
-  .mapa-cell-estado{font-size:.65rem;font-weight:700;margin-top:.15rem;}
-  .mapa-cell.presente .mapa-cell-estado{color:var(--sage);}
-  .mapa-cell.ausente  .mapa-cell-estado{color:var(--accent);}
-  .mapa-cell.tarde    .mapa-cell-estado{color:#9a7000;}
-  .mapa-cell-empty{font-size:.7rem;color:var(--border);font-style:italic;}
-  .mapa-pizarron{grid-column:1/-1;background:var(--ink);color:var(--paper);border-radius:8px;padding:.5rem;text-align:center;font-size:.75rem;font-weight:700;letter-spacing:.5px;margin-bottom:.4rem;opacity:.7;}
-  .mapa-config-bar{display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;}
-  .mapa-legend{display:flex;gap:.8rem;font-size:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:.7rem;}
-  .mapa-legend span{display:flex;align-items:center;gap:.3rem;}
-  .ml-dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
-
-
-  /* ══ MAPA DEL AULA ══ */
-  .mapa-grid{display:grid;gap:6px;margin-top:.8rem;}
-  .mapa-cell{border-radius:10px;border:2px solid var(--border);background:var(--card);padding:.4rem .35rem;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:64px;position:relative;transition:all .2s;cursor:pointer;text-align:center;}
-  .mapa-cell.ocupado{border-color:rgba(74,124,89,.5);background:rgba(74,124,89,.07);}
   .mapa-cell.bloqueado{background:rgba(0,0,0,.08);opacity:.5;cursor:default;}
   .mapa-cell.presente{border-color:var(--sage);background:rgba(74,124,89,.15);}
   .mapa-cell.ausente{border-color:var(--accent);background:rgba(192,57,43,.1);}
@@ -590,7 +566,6 @@
   .ml-dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
   .mapa-asign-select{width:100%;font-size:.68rem;border:1px solid var(--border);border-radius:6px;padding:.2rem .3rem;background:var(--paper);color:var(--ink);cursor:pointer;text-align:center;}
 
-
   /* BANNER BACKUP */
   .backup-banner{display:none;position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
     z-index:1200;background:#1a1a2e;color:#fff;border-radius:14px;
@@ -609,6 +584,267 @@
   /* PRINT */
   @media print{header,nav,.nav-tabs,.bottom-nav,.mas-menu,.mas-overlay,.toast,.save-reminder,.notif-overlay,.tray-overlay,.modal-bg,.btn,.btn-icon,.btn-sync,.btn-drive,.school-bar,.horario-vista-btns,.cal-nav,.form-actions,#btn-instalar{display:none!important;}body{background:white!important;color:black!important;}.tab-content{display:block!important;}.tab-content:not(.print-target){display:none!important;}.card{border:1px solid #ccc!important;box-shadow:none!important;break-inside:avoid;}.print-header{display:block!important;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid #333;}}
   .print-header{display:none;}
+
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:'DM Sans',sans-serif; color:#1a1a2e; background:white; font-size:11px; }
+      h1 { font-family:'Playfair Display',serif; font-size:18px; margin-bottom:4px; }
+      h2 { font-family:'Playfair Display',serif; font-size:14px; margin:14px 0 6px; color:#333; }
+      .meta { font-size:10px; color:#666; margin-bottom:12px; }
+      .badge { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
+      .badge-p  { background:rgba(74,124,89,.15); color:#2d5e38; }
+      .badge-a  { background:rgba(192,57,43,.12); color:#8b1e10; }
+      .badge-t  { background:rgba(212,160,23,.15); color:#7a5800; }
+      table { width:100%; border-collapse:collapse; font-size:10px; margin-bottom:16px; page-break-inside:auto; }
+      thead { background:#1a1a2e; color:white; }
+      th { padding:5px 7px; text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+      td { padding:4px 7px; border-bottom:1px solid #e8e8e8; vertical-align:middle; }
+      tr:nth-child(even) td { background:#fafafa; }
+      tr:last-child td { border-bottom:none; }
+      .nota-badge { display:inline-block; min-width:22px; text-align:center; padding:1px 3px; border-radius:4px; font-weight:700; font-size:9px; }
+      .nota-a { background:rgba(74,124,89,.15); color:#2d5e38; }
+      .nota-b { background:rgba(212,160,23,.15); color:#7a5800; }
+      .nota-c { background:rgba(192,57,43,.12); color:#8b1e10; }
+      .dot { display:inline-block; width:9px; height:9px; border-radius:50%; }
+      .hP  { background:#4a7c59; }
+      .hA  { background:#c0392b; }
+      .hT  { background:#d4a017; }
+      .hN  { background:#ddd; }
+      .ind-ok { color:#2d5e38; font-weight:700; }
+      .ind-ep { color:#7a5800; font-weight:700; }
+      .ind-no { color:#8b1e10; font-weight:700; }
+      .ind-nd { color:#ccc; }
+      .resumen-bar { display:flex; gap:12px; font-size:10px; margin-bottom:10px; flex-wrap:wrap; }
+      .rs { padding:2px 8px; border-radius:10px; font-weight:700; }
+      .rs-p { background:rgba(74,124,89,.12); color:#2d5e38; }
+      .rs-a { background:rgba(192,57,43,.1); color:#8b1e10; }
+      .rs-t { background:rgba(212,160,23,.12); color:#7a5800; }
+      .encabezado { border-bottom:3px solid #d4a017; padding-bottom:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-start; }
+      .logo { font-size:22px; font-family:'Playfair Display',serif; }
+      .logo span { color:#c0392b; }
+      .tema-tag { background:#f5f0e8; border-left:3px solid #d4a017; padding:2px 6px; font-size:9px; color:#555; border-radius:0 4px 4px 0; margin-left:4px; }
+      .obs-cell { font-style:italic; color:#555; font-size:9px; max-width:160px; }
+      .chip { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
+      .chip-full { background:rgba(74,124,89,.15); color:#2d5e38; }
+      .chip-part { background:rgba(212,160,23,.15); color:#7a5800; }
+      .chip-none { background:rgba(192,57,43,.1); color:#8b1e10; }
+      .seccion-sep { border:none; border-top:1px solid #e0d8c8; margin:14px 0; }
+      @page { margin:12mm 10mm; }
+      @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+    
+.ind-config-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:1.2rem;}
+.ind-config-title{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;}
+.ind-grid-config{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+@media(max-width:480px){.ind-grid-config{grid-template-columns:1fr;}}
+.ind-edit-box{display:flex;align-items:center;gap:.5rem;padding:.55rem .85rem;border-radius:10px;border:1.5px solid var(--border);background:var(--paper);transition:all .2s;}
+.ind-edit-box:focus-within{border-color:var(--gold);box-shadow:0 2px 8px rgba(212,160,23,.18);background:var(--card);}
+.ind-edit-emoji{font-size:1.15rem;flex-shrink:0;line-height:1;}
+.ind-edit-inner{flex:1;min-width:0;}
+.ind-edit-input{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;color:var(--ink);width:100%;padding:0;display:block;}
+.ind-edit-input:focus{outline:none;}
+.ind-edit-hint{font-size:.66rem;color:var(--muted);margin-top:.1rem;display:block;}
+.ind-edit-reset{background:none;border:none;cursor:pointer;font-size:.85rem;color:var(--muted);padding:.1rem .4rem;border-radius:4px;flex-shrink:0;opacity:0;transition:opacity .2s;}
+.ind-edit-box:hover .ind-edit-reset,.ind-edit-box:focus-within .ind-edit-reset{opacity:1;}
+.ind-edit-reset:hover{background:var(--border);color:var(--ink);}
+
+/* Botones de letra en asistencia */
+.letra-btns {
+  display: flex;
+  gap: .3rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.letra-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 .5rem;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: .02em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.letra-btn:hover { transform: scale(1.08); }
+.letra-btn.sel-letra {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: white;
+}
+/* Configuración de letras */
+.letras-config-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1rem;
+}
+.letras-config-title {
+  font-family: 'Playfair Display', serif;
+  font-size: .95rem;
+  margin-bottom: .7rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+.letras-grid {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.letra-item {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  align-items: center;
+  position: relative;
+}
+.letra-item label {
+  font-size: .64rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.letra-item input {
+  width: 52px;
+  text-align: center;
+  font-weight: 700;
+  font-size: .85rem;
+  padding: .35rem .3rem;
+  text-transform: uppercase;
+}
+.letra-item .btn-del-letra {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .75rem;
+  color: var(--muted);
+  padding: .1rem;
+  line-height: 1;
+}
+.letra-item .btn-del-letra:hover { color: var(--accent); }
+.btn-add-letra {
+  background: none;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: .35rem .8rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .2s;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: 1.1rem;
+}
+.btn-add-letra:hover { border-color: var(--gold); color: var(--ink); }
+
+/* Badge de letra en historial */
+.hist-letra {
+  display: inline-block;
+  min-width: 22px;
+  text-align: center;
+  padding: .1rem .3rem;
+  border-radius: 5px;
+  font-size: .75rem;
+  font-weight: 700;
+  background: rgba(26,26,46,.08);
+  color: var(--ink);
+}
+
+/* Estado de asistencia en la fila de seguimiento */
+.seg-asist-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .2rem .55rem;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.sab-P { background: rgba(74,124,89,.14);  color: #2d5e38; }
+.sab-A { background: rgba(192,57,43,.12);  color: #8b1e10; }
+.sab-T { background: rgba(212,160,23,.14); color: #7a5800; }
+.sab-N { background: var(--border);        color: var(--muted); }
+
+/* Barra de info del día en seguimiento (tema + asistencia global) */
+.seg-dia-bar {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: .55rem .9rem;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  margin-bottom: .7rem;
+  flex-wrap: wrap;
+  font-size: .82rem;
+}
+.seg-dia-bar .sdb-tema {
+  flex: 1;
+  min-width: 0;
+}
+.seg-dia-bar .sdb-titulo {
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.seg-dia-bar .sdb-desc {
+  font-size: .74rem;
+  color: var(--muted);
+  margin-top: .05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.seg-dia-bar .sdb-stats {
+  display: flex;
+  gap: .4rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.seg-dia-bar .sdb-chip {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .18rem .5rem;
+  border-radius: 20px;
+}
+.sdb-P { background: rgba(74,124,89,.13);  color: #2d5e38; }
+.sdb-A { background: rgba(192,57,43,.11);  color: #8b1e10; }
+.sdb-T { background: rgba(212,160,23,.13); color: #7a5800; }
+.sdb-nodata { color: var(--muted); font-style: italic; font-size: .76rem; }
+
+/* Ajuste de la grilla de seguimiento: columna extra para asistencia */
+.seg-indicador-header,
+.seg-row {
+  /* Agregar columna de asistencia al final de la definición existente */
+}
+/* Columna asistencia visible en la fila */
+.seg-asist-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 </style>
 </head>
@@ -847,7 +1083,6 @@
   </div>
 </div>
 
-
 <!-- ═══ HORARIO ═══ -->
 <div class="tab-content" id="tab-horario">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
@@ -988,7 +1223,6 @@
 </div>
 
 </main>
-
 
 <!-- BANNER AVISO BACKUP -->
 <div class="backup-banner hidden" id="backup-banner">
@@ -1249,9 +1483,9 @@ function goTab(name,el){
   if(name==='inicio'){renderInicio();renderProximosInicio();renderNotasInicio();}
   else if(name==='calendario'){renderCalendario();}
   else if(name==='alumnos'){renderFiltroAlumnos();renderTablaAlumnos();}
-  else if(name==='asistencia'){renderFiltroAsist();}
+  else if(name==='asistencia'){renderFiltroAsist();setTimeout(function(){if(typeof inyectarConfigLetras==='function')inyectarConfigLetras();},50);}
   else if(name==='historial'){renderFiltroHist();renderHistorial();}
-  else if(name==='seguimiento'){renderFiltroSeg();}
+  else if(name==='seguimiento'){renderFiltroSeg();setTimeout(function(){if(typeof window.renderIndConfigPanel==='function')window.renderIndConfigPanel();patchearSelectsSeg();},80);}
   else if(name==='horario'){renderHorario();}
   else if(name==='escuelas'){renderEscuelas();}
   else if(name==='trayectoria'){renderTrayLista();}
@@ -1267,6 +1501,8 @@ function bnavGo(name,idx){
   goTabDirect(name);
   document.querySelectorAll('.bnav-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
   document.getElementById('bnav-mas').classList.remove('active-mas');
+  if(name==='asistencia')setTimeout(function(){if(typeof inyectarConfigLetras==='function')inyectarConfigLetras();},50);
+  if(name==='seguimiento')setTimeout(function(){if(typeof window.renderIndConfigPanel==='function')window.renderIndConfigPanel();patchearSelectsSeg();},80);
 }
 function toggleMasMenu(){
   const menu=document.getElementById('mas-menu');
@@ -3346,7 +3582,6 @@ if(!_hasSaved){
   saveLS(); // Guardar los datos de ejemplo para que no vuelvan a cargarse
 }
 
-
 ['modal-alumno','modal-escuela','modal-curso','modal-seguimiento','modal-evento','modal-nota','modal-materia','modal-import-alumnos','modal-clase','modal-interv','modal-drive-setup','modal-sincro'].forEach(id=>{
   const el=document.getElementById(id);
   if(el)el.addEventListener('click',e=>{if(e.target.id===id)closeModal(id.replace('modal-',''));});
@@ -3855,7 +4090,6 @@ function deleteClase(id){
   showToast("Clase eliminada");saveLS();renderHorario();
 }
 
-
 // TRAYECTORIA
 let trayAlumnoId=null;
 let trayTabActual='resumen';
@@ -4058,7 +4292,6 @@ function deleteIntervActual(){
   showToast('Intervencion eliminada');
   closeModal('interv');saveLS();renderTrayIntervenciones();
 }
-
 
 // ══════════════════════════════════════════════════════
 // MAPA DEL AULA
@@ -4395,54 +4628,7 @@ function imprimirSeccion(seccion) {
 // ── Helpers compartidos ──────────────────────────────────────────
 function _estilosPrint() {
   return `
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
-      * { margin:0; padding:0; box-sizing:border-box; }
-      body { font-family:'DM Sans',sans-serif; color:#1a1a2e; background:white; font-size:11px; }
-      h1 { font-family:'Playfair Display',serif; font-size:18px; margin-bottom:4px; }
-      h2 { font-family:'Playfair Display',serif; font-size:14px; margin:14px 0 6px; color:#333; }
-      .meta { font-size:10px; color:#666; margin-bottom:12px; }
-      .badge { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
-      .badge-p  { background:rgba(74,124,89,.15); color:#2d5e38; }
-      .badge-a  { background:rgba(192,57,43,.12); color:#8b1e10; }
-      .badge-t  { background:rgba(212,160,23,.15); color:#7a5800; }
-      table { width:100%; border-collapse:collapse; font-size:10px; margin-bottom:16px; page-break-inside:auto; }
-      thead { background:#1a1a2e; color:white; }
-      th { padding:5px 7px; text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
-      td { padding:4px 7px; border-bottom:1px solid #e8e8e8; vertical-align:middle; }
-      tr:nth-child(even) td { background:#fafafa; }
-      tr:last-child td { border-bottom:none; }
-      .nota-badge { display:inline-block; min-width:22px; text-align:center; padding:1px 3px; border-radius:4px; font-weight:700; font-size:9px; }
-      .nota-a { background:rgba(74,124,89,.15); color:#2d5e38; }
-      .nota-b { background:rgba(212,160,23,.15); color:#7a5800; }
-      .nota-c { background:rgba(192,57,43,.12); color:#8b1e10; }
-      .dot { display:inline-block; width:9px; height:9px; border-radius:50%; }
-      .hP  { background:#4a7c59; }
-      .hA  { background:#c0392b; }
-      .hT  { background:#d4a017; }
-      .hN  { background:#ddd; }
-      .ind-ok { color:#2d5e38; font-weight:700; }
-      .ind-ep { color:#7a5800; font-weight:700; }
-      .ind-no { color:#8b1e10; font-weight:700; }
-      .ind-nd { color:#ccc; }
-      .resumen-bar { display:flex; gap:12px; font-size:10px; margin-bottom:10px; flex-wrap:wrap; }
-      .rs { padding:2px 8px; border-radius:10px; font-weight:700; }
-      .rs-p { background:rgba(74,124,89,.12); color:#2d5e38; }
-      .rs-a { background:rgba(192,57,43,.1); color:#8b1e10; }
-      .rs-t { background:rgba(212,160,23,.12); color:#7a5800; }
-      .encabezado { border-bottom:3px solid #d4a017; padding-bottom:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-start; }
-      .logo { font-size:22px; font-family:'Playfair Display',serif; }
-      .logo span { color:#c0392b; }
-      .tema-tag { background:#f5f0e8; border-left:3px solid #d4a017; padding:2px 6px; font-size:9px; color:#555; border-radius:0 4px 4px 0; margin-left:4px; }
-      .obs-cell { font-style:italic; color:#555; font-size:9px; max-width:160px; }
-      .chip { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
-      .chip-full { background:rgba(74,124,89,.15); color:#2d5e38; }
-      .chip-part { background:rgba(212,160,23,.15); color:#7a5800; }
-      .chip-none { background:rgba(192,57,43,.1); color:#8b1e10; }
-      .seccion-sep { border:none; border-top:1px solid #e0d8c8; margin:14px 0; }
-      @page { margin:12mm 10mm; }
-      @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
-    </style>
+    
   `;
 }
 
@@ -4782,285 +4968,7 @@ window.addEventListener('beforeinstallprompt', function(e) {
   }
 });
 
-</script>
-
-<!-- MODAL CONFIGURACIÓN DRIVE -->
-<div class="modal-bg" id="modal-drive-setup">
-  <div class="modal" style="max-width:540px;">
-    <div class="modal-title">☁️ Configurar Google Drive</div>
-    <div style="font-size:.84rem;color:var(--muted);margin-bottom:1.2rem;">Conectá ProfeDesk con tu Google Drive para guardar y restaurar datos automáticamente desde cualquier dispositivo. Es gratis y tarda 5 minutos.</div>
-
-    <div class="setup-step">
-      <div class="setup-num">1</div>
-      <div class="setup-text">
-        <strong>Abrí Google Cloud Console</strong>
-        Entrá a <a href="https://console.cloud.google.com" target="_blank" style="color:var(--sage);">console.cloud.google.com</a> → "Nuevo proyecto" → Nombre: <em>ProfeDesk</em> → Crear
-      </div>
-    </div>
-    <div class="setup-step">
-      <div class="setup-num">2</div>
-      <div class="setup-text">
-        <strong>Habilitá Google Drive API</strong>
-        Menú → APIs y servicios → Biblioteca → Buscá "Google Drive API" → Habilitar
-      </div>
-    </div>
-    <div class="setup-step">
-      <div class="setup-num">3</div>
-      <div class="setup-text">
-        <strong>Creá credenciales OAuth</strong>
-        APIs y servicios → Credenciales → + Crear credenciales → ID de cliente OAuth → Aplicación web
-      </div>
-    </div>
-    <div class="setup-step">
-      <div class="setup-num">4</div>
-      <div class="setup-text">
-        <strong>Agregá el origen autorizado</strong>
-        En "Orígenes autorizados de JavaScript" agregá exactamente:
-        <code id="drive-origin-display" style="background:var(--paper);padding:.15rem .5rem;border-radius:4px;font-size:.8rem;display:block;margin-top:.3rem;word-break:break-all;"></code>
-        <button onclick="copiarOrigen()" style="margin-top:.4rem;background:none;border:1px solid var(--border);border-radius:5px;padding:.2rem .6rem;font-size:.72rem;cursor:pointer;">📋 Copiar URL</button>
-      </div>
-    </div>
-    <div class="setup-step">
-      <div class="setup-num">5</div>
-      <div class="setup-text">
-        <strong>Pegá tu Client ID acá abajo</strong>
-        Copiá el ID que termina en <em>.apps.googleusercontent.com</em>
-      </div>
-    </div>
-
-    <div style="margin-top:1rem;">
-      <label>Tu Client ID</label>
-      <input id="drive-client-id-input" placeholder="123456789-abc123.apps.googleusercontent.com" style="font-size:.8rem;">
-      <div style="font-size:.72rem;color:var(--muted);margin-top:.3rem;">Se guarda solo en este dispositivo (localStorage). Nunca se envía a ningún servidor.</div>
-    </div>
-
-    <div class="form-actions" style="flex-wrap:wrap;gap:.5rem;">
-      <button class="btn btn-ghost" onclick="closeModal('drive-setup')">Cancelar</button>
-      <button class="btn btn-danger btn-sm" id="btn-clear-drive" onclick="clearClientId()" style="display:none;">🗑️ Desconectar</button>
-      <button class="btn btn-primary" onclick="saveClientId()">💾 Guardar y conectar</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- MODAL CLASE HORARIO -->
-<div class="modal-bg" id="modal-clase">
-  <div class="modal">
-    <div class="modal-title" id="modal-clase-title">Nueva clase</div>
-    <input type="hidden" id="edit-clase-id">
-    <input type="hidden" id="edit-clase-dia">
-    <input type="hidden" id="edit-clase-turno">
-    <div class="form-row"><label>Nombre / Materia</label><input id="clase-nombre" placeholder="Ej: Economía 3°B"></div>
-    <div class="form-grid">
-      <div class="form-row"><label>Escuela</label><select id="clase-escuela"></select></div>
-      <div class="form-row"><label>Curso</label><select id="clase-curso-h"></select></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-row"><label>Día</label>
-        <select id="clase-dia">
-          <option value="0">Lunes</option><option value="1">Martes</option>
-          <option value="2">Miércoles</option><option value="3">Jueves</option><option value="4">Viernes</option>
-        </select>
-      </div>
-      <div class="form-row"><label>Turno</label>
-        <select id="clase-turno">
-          <option value="manana">🌅 Mañana</option>
-          <option value="tarde">☀️ Tarde</option>
-          <option value="noche">🌙 Noche</option>
-        </select>
-      </div>
-    </div>
-    <div class="time-row">
-      <div class="form-row"><label>Hora inicio</label><input type="time" id="clase-inicio"></div>
-      <div class="form-row"><label>Hora fin</label><input type="time" id="clase-fin"></div>
-    </div>
-    <div class="form-row"><label>Color</label>
-      <select id="clase-color">
-        <option value="sage">🟢 Verde (Escuela San Martín)</option>
-        <option value="accent">🔴 Rojo (Instituto Belgrano)</option>
-        <option value="gold">🟡 Amarillo (Colegio del Norte)</option>
-        <option value="blue">🔵 Azul</option>
-        <option value="purple">🟣 Violeta</option>
-      </select>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-ghost" onclick="closeModal('clase')">Cancelar</button>
-      <button class="btn btn-danger btn-sm" id="btn-delete-clase" style="display:none;" onclick="deleteClaseActual()">🗑️ Eliminar</button>
-      <button class="btn btn-primary" onclick="saveClase()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- PANEL TRAYECTORIA (se abre como overlay desde otras secciones) -->
-<!-- MODAL GESTOR FECHAS SEGUIMIENTO -->
-<div class="modal-bg" id="modal-gestor-seg" onclick="if(event.target===this)closeModal('gestor-seg')">
-  <div class="modal" style="max-width:520px;width:95%;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-      <div style="font-size:1rem;font-weight:700;">🗂️ Fechas registradas en Seguimiento</div>
-      <button class="btn-icon" onclick="closeModal('gestor-seg')">✕</button>
-    </div>
-    <div style="font-size:.82rem;color:var(--muted);margin-bottom:.8rem;">
-      Seleccioná un curso y materia para ver todas las fechas registradas y borrar las que no necesitás.
-    </div>
-    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem;">
-      <select id="gseg-curso" onchange="gsegUpdateMaterias()" style="flex:1;min-width:120px;"></select>
-      <select id="gseg-materia" onchange="gsegRenderFechas()" style="flex:1;min-width:120px;"></select>
-    </div>
-    <div id="gseg-fechas-lista" style="max-height:380px;overflow-y:auto;"></div>
-  </div>
-</div>
-<div class="tray-overlay" id="tray-overlay" onclick="if(event.target===this)cerrarTrayectoria()">
-  <div class="tray-panel">
-    <div class="tray-header">
-      <div class="tray-avatar" id="tray-avatar"></div>
-      <div>
-        <div class="tray-nombre" id="tray-nombre"></div>
-        <div class="tray-sub" id="tray-sub"></div>
-      </div>
-      <button class="tray-close" onclick="cerrarTrayectoria()">✕ Cerrar</button>
-    </div>
-
-    <div class="tray-tabs">
-      <div class="tray-tab active" onclick="trayTab('resumen',this)">📊 Resumen</div>
-      <div class="tray-tab" onclick="trayTab('ingreso',this)">📋 Ingreso</div>
-      <div class="tray-tab" onclick="trayTab('observaciones',this)">📝 Observaciones</div>
-      <div class="tray-tab" onclick="trayTab('intervenciones',this)">🤝 Intervenciones</div>
-    </div>
-
-    <div class="tray-body">
-
-      <!-- RESUMEN -->
-      <div id="tray-resumen">
-        <div class="tray-stats" id="tray-stats-row"></div>
-        <div id="tray-resumen-notas"></div>
-        <div id="tray-resumen-ing"></div>
-      </div>
-
-      <!-- INGRESO -->
-      <div id="tray-ingreso" style="display:none;">
-        <div class="ing-grid">
-          <div class="ing-field">
-            <div class="ing-label">Situación de ingreso</div>
-            <select id="tray-ing-situacion" onchange="saveTrayField('situacion',this.value)">
-              <option value="">Sin especificar</option>
-              <option value="nuevo">Alumno nuevo</option>
-              <option value="repitente">Repitente</option>
-              <option value="pase">Pase de otra escuela</option>
-              <option value="reincorporado">Reincorporado</option>
-            </select>
-          </div>
-          <div class="ing-field">
-            <div class="ing-label">Año de ingreso</div>
-            <input type="number" id="tray-ing-anio" placeholder="Ej: 2024" min="2000" max="2099" onchange="saveTrayField('anioIngreso',this.value)">
-          </div>
-          <div class="ing-field">
-            <div class="ing-label">Escuela de origen (si es pase)</div>
-            <input type="text" id="tray-ing-origen" placeholder="Nombre de la escuela" onchange="saveTrayField('escuelaOrigen',this.value)">
-          </div>
-          <div class="ing-field">
-            <div class="ing-label">Condición</div>
-            <select id="tray-ing-condicion" onchange="saveTrayField('condicion',this.value)">
-              <option value="">Sin especificar</option>
-              <option value="regular">Regular</option>
-              <option value="libre">Libre</option>
-              <option value="condicional">Condicional</option>
-            </select>
-          </div>
-        </div>
-        <div class="ing-field" style="margin-top:.3rem;">
-          <div class="ing-label">Necesidades educativas / contexto familiar</div>
-          <textarea id="tray-ing-contexto" rows="3" placeholder="Ej: Trabaja, tiene hijos, vive lejos, NEE diagnosticada..." onchange="saveTrayField('contexto',this.value)"></textarea>
-        </div>
-      </div>
-
-      <!-- OBSERVACIONES -->
-      <div id="tray-observaciones" style="display:none;">
-        <div class="ing-label" style="margin-bottom:.4rem;">Observaciones generales del alumno</div>
-        <textarea id="tray-obs-texto" rows="7" placeholder="Escribí acá todo lo que quieras recordar sobre este alumno: actitud en clase, vínculos, evolución, logros, dificultades..." style="width:100%;resize:vertical;" onchange="saveTrayField('observaciones',this.value)"></textarea>
-        <div class="obs-hint">Se guarda automáticamente al salir del campo.</div>
-
-        <div style="margin-top:1.2rem;">
-          <div class="ing-label" style="margin-bottom:.4rem;">Última actualización</div>
-          <div id="tray-obs-fecha" style="font-size:.8rem;color:var(--muted);">—</div>
-        </div>
-      </div>
-
-      <!-- INTERVENCIONES -->
-      <div id="tray-intervenciones" style="display:none;">
-        <div class="interv-list" id="interv-lista"></div>
-        <button class="btn-add-interv" onclick="abrirModalInterv()">+ Registrar nueva intervención</button>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- MODAL INTERVENCIÓN -->
-<div class="modal-bg" id="modal-interv">
-  <div class="modal">
-    <div class="modal-title" id="modal-interv-title">Nueva intervención</div>
-    <input type="hidden" id="edit-interv-id">
-    <div class="form-row">
-      <label>Tipo de intervención</label>
-      <div class="tipo-btns" id="interv-tipo-btns">
-        <button class="tipo-btn sel" data-tipo="reunion" onclick="selTipo(this)">🤝 Reunión con padres</button>
-        <button class="tipo-btn" data-tipo="derivacion" onclick="selTipo(this)">🏥 Derivación</button>
-        <button class="tipo-btn" data-tipo="llamado" onclick="selTipo(this)">📞 Llamado telefónico</button>
-        <button class="tipo-btn" data-tipo="acuerdo" onclick="selTipo(this)">📋 Acuerdo pedagógico</button>
-        <button class="tipo-btn" data-tipo="otro" onclick="selTipo(this)">📌 Otro</button>
-      </div>
-    </div>
-    <div class="form-row"><label>Fecha</label><input type="date" id="interv-fecha"></div>
-    <div class="form-row"><label>Descripción</label><textarea id="interv-desc" rows="3" placeholder="¿Qué se trató? ¿Qué se acordó? ¿Qué resultado tuvo?"></textarea></div>
-    <div class="form-row"><label>Seguimiento / próximo paso</label><input id="interv-seguimiento" placeholder="Ej: Citar nuevamente en 2 semanas"></div>
-    <div class="form-actions">
-      <button class="btn btn-ghost" onclick="closeModal('interv')">Cancelar</button>
-      <button class="btn btn-danger btn-sm" id="btn-del-interv" style="display:none;" onclick="deleteIntervActual()">🗑️</button>
-      <button class="btn btn-primary" onclick="saveInterv()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL SINCRONIZACIÓN -->
-<div class="modal-bg" id="modal-sincro">
-  <div class="modal" style="max-width:560px;">
-    <div class="modal-title">📱 Sincronizar entre dispositivos</div>
-    <div id="modal-sincro-body"></div>
-  </div>
-</div>
-<div class="modal-bg" id="modal-sincro">
-  <div class="modal" style="max-width:560px;">
-    <div class="modal-title">📱 Sincronizar entre dispositivos</div>
-    <div id="modal-sincro-body"></div>
-  </div>
-</div>
-<!-- ================================================================
-  INSTRUCCIÓN ÚNICA:
-  Copiá todo el contenido de este archivo y pegalo en tu ProfeDesk.html
-  JUSTO ANTES de la última línea que dice </body>
-  
-  Eso es todo. No hay que tocar nada más.
-  ================================================================ -->
-
-<style>
-.ind-config-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:1.2rem;}
-.ind-config-title{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;}
-.ind-grid-config{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
-@media(max-width:480px){.ind-grid-config{grid-template-columns:1fr;}}
-.ind-edit-box{display:flex;align-items:center;gap:.5rem;padding:.55rem .85rem;border-radius:10px;border:1.5px solid var(--border);background:var(--paper);transition:all .2s;}
-.ind-edit-box:focus-within{border-color:var(--gold);box-shadow:0 2px 8px rgba(212,160,23,.18);background:var(--card);}
-.ind-edit-emoji{font-size:1.15rem;flex-shrink:0;line-height:1;}
-.ind-edit-inner{flex:1;min-width:0;}
-.ind-edit-input{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;color:var(--ink);width:100%;padding:0;display:block;}
-.ind-edit-input:focus{outline:none;}
-.ind-edit-hint{font-size:.66rem;color:var(--muted);margin-top:.1rem;display:block;}
-.ind-edit-reset{background:none;border:none;cursor:pointer;font-size:.85rem;color:var(--muted);padding:.1rem .4rem;border-radius:4px;flex-shrink:0;opacity:0;transition:opacity .2s;}
-.ind-edit-box:hover .ind-edit-reset,.ind-edit-box:focus-within .ind-edit-reset{opacity:1;}
-.ind-edit-reset:hover{background:var(--border);color:var(--ink);}
-</style>
-
-<script>
+/* ══ INDICADORES DE SEGUIMIENTO ══ */
 (function(){
 
 /* ── 1. Datos por defecto y persistencia ── */
@@ -5178,27 +5086,6 @@ function actualizarEncabezados() {
   });
 }
 
-/* ── 7. Parchear goTab para mostrar el panel al entrar a Seguimiento ── */
-var _goTabOrig = window.goTab;
-if (typeof _goTabOrig === 'function') {
-  window.goTab = function(name, el) {
-    _goTabOrig(name, el);
-    if (name === 'seguimiento') {
-      // pequeño delay para que el DOM esté listo
-      setTimeout(window.renderIndConfigPanel, 50);
-    }
-  };
-}
-
-/* también bnavGo (mobile) */
-var _bnavGoOrig = window.bnavGo;
-if (typeof _bnavGoOrig === 'function') {
-  window.bnavGo = function(name, idx) {
-    _bnavGoOrig(name, idx);
-    if (name === 'seguimiento') setTimeout(window.renderIndConfigPanel, 50);
-  };
-}
-
 /* ── 8. Parchear abrirDetalleSeg para usar nombres editables en el modal ── */
 var _abrirDetOrig = window.abrirDetalleSeg;
 if (typeof _abrirDetOrig === 'function') {
@@ -5240,136 +5127,8 @@ setTimeout(function() {
 }, 200);
 
 })();
-</script>
-  <!-- ================================================================
-  INSTRUCCIÓN ÚNICA:
-  Copiá todo el contenido de este archivo y pegalo en tu ProfeDesk.html
-  JUSTO ANTES de la última línea que dice </body>
-  (si ya pegaste el parche de indicadores, pegá esto DESPUÉS de ese bloque)
-  ================================================================ -->
 
-<style>
-/* Botones de letra en asistencia */
-.letra-btns {
-  display: flex;
-  gap: .3rem;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-}
-.letra-btn {
-  min-width: 34px;
-  height: 34px;
-  padding: 0 .5rem;
-  border-radius: 8px;
-  border: 2px solid var(--border);
-  background: white;
-  font-family: 'DM Sans', sans-serif;
-  font-size: .78rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all .15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: .02em;
-  color: var(--ink);
-  white-space: nowrap;
-}
-.letra-btn:hover { transform: scale(1.08); }
-.letra-btn.sel-letra {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: white;
-}
-/* Configuración de letras */
-.letras-config-panel {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.1rem 1.3rem;
-  margin-bottom: 1rem;
-}
-.letras-config-title {
-  font-family: 'Playfair Display', serif;
-  font-size: .95rem;
-  margin-bottom: .7rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: .4rem;
-}
-.letras-grid {
-  display: flex;
-  gap: .5rem;
-  flex-wrap: wrap;
-  align-items: flex-end;
-}
-.letra-item {
-  display: flex;
-  flex-direction: column;
-  gap: .2rem;
-  align-items: center;
-  position: relative;
-}
-.letra-item label {
-  font-size: .64rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-.letra-item input {
-  width: 52px;
-  text-align: center;
-  font-weight: 700;
-  font-size: .85rem;
-  padding: .35rem .3rem;
-  text-transform: uppercase;
-}
-.letra-item .btn-del-letra {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: .75rem;
-  color: var(--muted);
-  padding: .1rem;
-  line-height: 1;
-}
-.letra-item .btn-del-letra:hover { color: var(--accent); }
-.btn-add-letra {
-  background: none;
-  border: 2px dashed var(--border);
-  border-radius: 8px;
-  padding: .35rem .8rem;
-  font-size: .8rem;
-  font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all .2s;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  gap: .3rem;
-  margin-top: 1.1rem;
-}
-.btn-add-letra:hover { border-color: var(--gold); color: var(--ink); }
-
-/* Badge de letra en historial */
-.hist-letra {
-  display: inline-block;
-  min-width: 22px;
-  text-align: center;
-  padding: .1rem .3rem;
-  border-radius: 5px;
-  font-size: .75rem;
-  font-weight: 700;
-  background: rgba(26,26,46,.08);
-  color: var(--ink);
-}
-</style>
-
-<script>
+/* ══ CALIFICACIÓN POR LETRAS ══ */
 (function(){
 
 /* ══════════════════════════════════════════════════════════════
@@ -5581,28 +5340,6 @@ if (typeof _renderHistOrig2 === 'function') {
   };
 }
 
-/* ── Inicializar cuando se abre la pestaña de asistencia ── */
-var _goTabOrig = window.goTab;
-if (typeof _goTabOrig === 'function') {
-  window.goTab = function(name, el) {
-    _goTabOrig(name, el);
-    if (name === 'asistencia') {
-      setTimeout(function() {
-        inyectarConfigLetras();
-      }, 50);
-    }
-  };
-}
-
-/* también bnavGo (mobile) */
-var _bnavGoOrig = window.bnavGo;
-if (typeof _bnavGoOrig === 'function') {
-  window.bnavGo = function(name, idx) {
-    _bnavGoOrig(name, idx);
-    if (name === 'asistencia') setTimeout(inyectarConfigLetras, 50);
-  };
-}
-
 /* Si la pestaña ya está activa al cargar */
 setTimeout(function() {
   var tabAsist = document.getElementById('tab-asistencia');
@@ -5614,96 +5351,9 @@ setTimeout(function() {
 console.log('✅ ProfeDesk: calificación por letras activada');
 
 })();
-</script>
-  <!-- ================================================================
-  INSTRUCCIÓN ÚNICA:
-  Pegá todo este contenido en tu ProfeDesk.html JUSTO ANTES de </body>
-  ================================================================ -->
 
-<style>
-/* Estado de asistencia en la fila de seguimiento */
-.seg-asist-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: .25rem;
-  font-size: .72rem;
-  font-weight: 700;
-  padding: .2rem .55rem;
-  border-radius: 20px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.sab-P { background: rgba(74,124,89,.14);  color: #2d5e38; }
-.sab-A { background: rgba(192,57,43,.12);  color: #8b1e10; }
-.sab-T { background: rgba(212,160,23,.14); color: #7a5800; }
-.sab-N { background: var(--border);        color: var(--muted); }
-
-/* Barra de info del día en seguimiento (tema + asistencia global) */
-.seg-dia-bar {
-  display: flex;
-  align-items: center;
-  gap: .8rem;
-  padding: .55rem .9rem;
-  border-radius: 10px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  margin-bottom: .7rem;
-  flex-wrap: wrap;
-  font-size: .82rem;
-}
-.seg-dia-bar .sdb-tema {
-  flex: 1;
-  min-width: 0;
-}
-.seg-dia-bar .sdb-titulo {
-  font-weight: 700;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-.seg-dia-bar .sdb-desc {
-  font-size: .74rem;
-  color: var(--muted);
-  margin-top: .05rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-.seg-dia-bar .sdb-stats {
-  display: flex;
-  gap: .4rem;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-.seg-dia-bar .sdb-chip {
-  font-size: .72rem;
-  font-weight: 700;
-  padding: .18rem .5rem;
-  border-radius: 20px;
-}
-.sdb-P { background: rgba(74,124,89,.13);  color: #2d5e38; }
-.sdb-A { background: rgba(192,57,43,.11);  color: #8b1e10; }
-.sdb-T { background: rgba(212,160,23,.13); color: #7a5800; }
-.sdb-nodata { color: var(--muted); font-style: italic; font-size: .76rem; }
-
-/* Ajuste de la grilla de seguimiento: columna extra para asistencia */
-.seg-indicador-header,
-.seg-row {
-  /* Agregar columna de asistencia al final de la definición existente */
-}
-/* Columna asistencia visible en la fila */
-.seg-asist-col {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-</style>
-
-<script>
-(function () {
+/* ══ SINCRONIZACIÓN ASISTENCIA ↔ SEGUIMIENTO ══ */
+(function(){
 
 /* ══════════════════════════════════════════════════════════════
    PARCHE: sincronización Asistencia ↔ Seguimiento
@@ -5991,24 +5641,6 @@ function patchearSelectsSeg() {
 
 /* ── Parchear goTab / bnavGo para inicializar al entrar a seguimiento ── */
 
-var _goTabOrig2 = window.goTab;
-if (typeof _goTabOrig2 === 'function') {
-  window.goTab = function(name, el) {
-    _goTabOrig2(name, el);
-    if (name === 'seguimiento') {
-      setTimeout(patchearSelectsSeg, 80);
-    }
-  };
-}
-
-var _bnavGoOrig2 = window.bnavGo;
-if (typeof _bnavGoOrig2 === 'function') {
-  window.bnavGo = function(name, idx) {
-    _bnavGoOrig2(name, idx);
-    if (name === 'seguimiento') setTimeout(patchearSelectsSeg, 80);
-  };
-}
-
 /* Inicializar si seguimiento ya está activo */
 setTimeout(function() {
   var tabSeg = document.getElementById('tab-seguimiento');
@@ -6020,6 +5652,258 @@ setTimeout(function() {
 console.log('✅ ProfeDesk: asistencia + tema sincronizados en seguimiento');
 
 })();
+
 </script>
+
+<!-- MODAL CONFIGURACIÓN DRIVE -->
+<div class="modal-bg" id="modal-drive-setup">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-title">☁️ Configurar Google Drive</div>
+    <div style="font-size:.84rem;color:var(--muted);margin-bottom:1.2rem;">Conectá ProfeDesk con tu Google Drive para guardar y restaurar datos automáticamente desde cualquier dispositivo. Es gratis y tarda 5 minutos.</div>
+
+    <div class="setup-step">
+      <div class="setup-num">1</div>
+      <div class="setup-text">
+        <strong>Abrí Google Cloud Console</strong>
+        Entrá a <a href="https://console.cloud.google.com" target="_blank" style="color:var(--sage);">console.cloud.google.com</a> → "Nuevo proyecto" → Nombre: <em>ProfeDesk</em> → Crear
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="setup-num">2</div>
+      <div class="setup-text">
+        <strong>Habilitá Google Drive API</strong>
+        Menú → APIs y servicios → Biblioteca → Buscá "Google Drive API" → Habilitar
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="setup-num">3</div>
+      <div class="setup-text">
+        <strong>Creá credenciales OAuth</strong>
+        APIs y servicios → Credenciales → + Crear credenciales → ID de cliente OAuth → Aplicación web
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="setup-num">4</div>
+      <div class="setup-text">
+        <strong>Agregá el origen autorizado</strong>
+        En "Orígenes autorizados de JavaScript" agregá exactamente:
+        <code id="drive-origin-display" style="background:var(--paper);padding:.15rem .5rem;border-radius:4px;font-size:.8rem;display:block;margin-top:.3rem;word-break:break-all;"></code>
+        <button onclick="copiarOrigen()" style="margin-top:.4rem;background:none;border:1px solid var(--border);border-radius:5px;padding:.2rem .6rem;font-size:.72rem;cursor:pointer;">📋 Copiar URL</button>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="setup-num">5</div>
+      <div class="setup-text">
+        <strong>Pegá tu Client ID acá abajo</strong>
+        Copiá el ID que termina en <em>.apps.googleusercontent.com</em>
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;">
+      <label>Tu Client ID</label>
+      <input id="drive-client-id-input" placeholder="123456789-abc123.apps.googleusercontent.com" style="font-size:.8rem;">
+      <div style="font-size:.72rem;color:var(--muted);margin-top:.3rem;">Se guarda solo en este dispositivo (localStorage). Nunca se envía a ningún servidor.</div>
+    </div>
+
+    <div class="form-actions" style="flex-wrap:wrap;gap:.5rem;">
+      <button class="btn btn-ghost" onclick="closeModal('drive-setup')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-clear-drive" onclick="clearClientId()" style="display:none;">🗑️ Desconectar</button>
+      <button class="btn btn-primary" onclick="saveClientId()">💾 Guardar y conectar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CLASE HORARIO -->
+<div class="modal-bg" id="modal-clase">
+  <div class="modal">
+    <div class="modal-title" id="modal-clase-title">Nueva clase</div>
+    <input type="hidden" id="edit-clase-id">
+    <input type="hidden" id="edit-clase-dia">
+    <input type="hidden" id="edit-clase-turno">
+    <div class="form-row"><label>Nombre / Materia</label><input id="clase-nombre" placeholder="Ej: Economía 3°B"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Escuela</label><select id="clase-escuela"></select></div>
+      <div class="form-row"><label>Curso</label><select id="clase-curso-h"></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Día</label>
+        <select id="clase-dia">
+          <option value="0">Lunes</option><option value="1">Martes</option>
+          <option value="2">Miércoles</option><option value="3">Jueves</option><option value="4">Viernes</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Turno</label>
+        <select id="clase-turno">
+          <option value="manana">🌅 Mañana</option>
+          <option value="tarde">☀️ Tarde</option>
+          <option value="noche">🌙 Noche</option>
+        </select>
+      </div>
+    </div>
+    <div class="time-row">
+      <div class="form-row"><label>Hora inicio</label><input type="time" id="clase-inicio"></div>
+      <div class="form-row"><label>Hora fin</label><input type="time" id="clase-fin"></div>
+    </div>
+    <div class="form-row"><label>Color</label>
+      <select id="clase-color">
+        <option value="sage">🟢 Verde (Escuela San Martín)</option>
+        <option value="accent">🔴 Rojo (Instituto Belgrano)</option>
+        <option value="gold">🟡 Amarillo (Colegio del Norte)</option>
+        <option value="blue">🔵 Azul</option>
+        <option value="purple">🟣 Violeta</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('clase')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-delete-clase" style="display:none;" onclick="deleteClaseActual()">🗑️ Eliminar</button>
+      <button class="btn btn-primary" onclick="saveClase()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL TRAYECTORIA (se abre como overlay desde otras secciones) -->
+<!-- MODAL GESTOR FECHAS SEGUIMIENTO -->
+<div class="modal-bg" id="modal-gestor-seg" onclick="if(event.target===this)closeModal('gestor-seg')">
+  <div class="modal" style="max-width:520px;width:95%;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div style="font-size:1rem;font-weight:700;">🗂️ Fechas registradas en Seguimiento</div>
+      <button class="btn-icon" onclick="closeModal('gestor-seg')">✕</button>
+    </div>
+    <div style="font-size:.82rem;color:var(--muted);margin-bottom:.8rem;">
+      Seleccioná un curso y materia para ver todas las fechas registradas y borrar las que no necesitás.
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem;">
+      <select id="gseg-curso" onchange="gsegUpdateMaterias()" style="flex:1;min-width:120px;"></select>
+      <select id="gseg-materia" onchange="gsegRenderFechas()" style="flex:1;min-width:120px;"></select>
+    </div>
+    <div id="gseg-fechas-lista" style="max-height:380px;overflow-y:auto;"></div>
+  </div>
+</div>
+<div class="tray-overlay" id="tray-overlay" onclick="if(event.target===this)cerrarTrayectoria()">
+  <div class="tray-panel">
+    <div class="tray-header">
+      <div class="tray-avatar" id="tray-avatar"></div>
+      <div>
+        <div class="tray-nombre" id="tray-nombre"></div>
+        <div class="tray-sub" id="tray-sub"></div>
+      </div>
+      <button class="tray-close" onclick="cerrarTrayectoria()">✕ Cerrar</button>
+    </div>
+
+    <div class="tray-tabs">
+      <div class="tray-tab active" onclick="trayTab('resumen',this)">📊 Resumen</div>
+      <div class="tray-tab" onclick="trayTab('ingreso',this)">📋 Ingreso</div>
+      <div class="tray-tab" onclick="trayTab('observaciones',this)">📝 Observaciones</div>
+      <div class="tray-tab" onclick="trayTab('intervenciones',this)">🤝 Intervenciones</div>
+    </div>
+
+    <div class="tray-body">
+
+      <!-- RESUMEN -->
+      <div id="tray-resumen">
+        <div class="tray-stats" id="tray-stats-row"></div>
+        <div id="tray-resumen-notas"></div>
+        <div id="tray-resumen-ing"></div>
+      </div>
+
+      <!-- INGRESO -->
+      <div id="tray-ingreso" style="display:none;">
+        <div class="ing-grid">
+          <div class="ing-field">
+            <div class="ing-label">Situación de ingreso</div>
+            <select id="tray-ing-situacion" onchange="saveTrayField('situacion',this.value)">
+              <option value="">Sin especificar</option>
+              <option value="nuevo">Alumno nuevo</option>
+              <option value="repitente">Repitente</option>
+              <option value="pase">Pase de otra escuela</option>
+              <option value="reincorporado">Reincorporado</option>
+            </select>
+          </div>
+          <div class="ing-field">
+            <div class="ing-label">Año de ingreso</div>
+            <input type="number" id="tray-ing-anio" placeholder="Ej: 2024" min="2000" max="2099" onchange="saveTrayField('anioIngreso',this.value)">
+          </div>
+          <div class="ing-field">
+            <div class="ing-label">Escuela de origen (si es pase)</div>
+            <input type="text" id="tray-ing-origen" placeholder="Nombre de la escuela" onchange="saveTrayField('escuelaOrigen',this.value)">
+          </div>
+          <div class="ing-field">
+            <div class="ing-label">Condición</div>
+            <select id="tray-ing-condicion" onchange="saveTrayField('condicion',this.value)">
+              <option value="">Sin especificar</option>
+              <option value="regular">Regular</option>
+              <option value="libre">Libre</option>
+              <option value="condicional">Condicional</option>
+            </select>
+          </div>
+        </div>
+        <div class="ing-field" style="margin-top:.3rem;">
+          <div class="ing-label">Necesidades educativas / contexto familiar</div>
+          <textarea id="tray-ing-contexto" rows="3" placeholder="Ej: Trabaja, tiene hijos, vive lejos, NEE diagnosticada..." onchange="saveTrayField('contexto',this.value)"></textarea>
+        </div>
+      </div>
+
+      <!-- OBSERVACIONES -->
+      <div id="tray-observaciones" style="display:none;">
+        <div class="ing-label" style="margin-bottom:.4rem;">Observaciones generales del alumno</div>
+        <textarea id="tray-obs-texto" rows="7" placeholder="Escribí acá todo lo que quieras recordar sobre este alumno: actitud en clase, vínculos, evolución, logros, dificultades..." style="width:100%;resize:vertical;" onchange="saveTrayField('observaciones',this.value)"></textarea>
+        <div class="obs-hint">Se guarda automáticamente al salir del campo.</div>
+
+        <div style="margin-top:1.2rem;">
+          <div class="ing-label" style="margin-bottom:.4rem;">Última actualización</div>
+          <div id="tray-obs-fecha" style="font-size:.8rem;color:var(--muted);">—</div>
+        </div>
+      </div>
+
+      <!-- INTERVENCIONES -->
+      <div id="tray-intervenciones" style="display:none;">
+        <div class="interv-list" id="interv-lista"></div>
+        <button class="btn-add-interv" onclick="abrirModalInterv()">+ Registrar nueva intervención</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INTERVENCIÓN -->
+<div class="modal-bg" id="modal-interv">
+  <div class="modal">
+    <div class="modal-title" id="modal-interv-title">Nueva intervención</div>
+    <input type="hidden" id="edit-interv-id">
+    <div class="form-row">
+      <label>Tipo de intervención</label>
+      <div class="tipo-btns" id="interv-tipo-btns">
+        <button class="tipo-btn sel" data-tipo="reunion" onclick="selTipo(this)">🤝 Reunión con padres</button>
+        <button class="tipo-btn" data-tipo="derivacion" onclick="selTipo(this)">🏥 Derivación</button>
+        <button class="tipo-btn" data-tipo="llamado" onclick="selTipo(this)">📞 Llamado telefónico</button>
+        <button class="tipo-btn" data-tipo="acuerdo" onclick="selTipo(this)">📋 Acuerdo pedagógico</button>
+        <button class="tipo-btn" data-tipo="otro" onclick="selTipo(this)">📌 Otro</button>
+      </div>
+    </div>
+    <div class="form-row"><label>Fecha</label><input type="date" id="interv-fecha"></div>
+    <div class="form-row"><label>Descripción</label><textarea id="interv-desc" rows="3" placeholder="¿Qué se trató? ¿Qué se acordó? ¿Qué resultado tuvo?"></textarea></div>
+    <div class="form-row"><label>Seguimiento / próximo paso</label><input id="interv-seguimiento" placeholder="Ej: Citar nuevamente en 2 semanas"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('interv')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-del-interv" style="display:none;" onclick="deleteIntervActual()">🗑️</button>
+      <button class="btn btn-primary" onclick="saveInterv()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SINCRONIZACIÓN -->
+<div class="modal-bg" id="modal-sincro">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title">📱 Sincronizar entre dispositivos</div>
+    <div id="modal-sincro-body"></div>
+  </div>
+</div>
+<div class="modal-bg" id="modal-sincro">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title">📱 Sincronizar entre dispositivos</div>
+    <div id="modal-sincro-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
