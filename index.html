@@ -94,15 +94,15 @@
   .asist-list{display:flex;flex-direction:column;gap:.45rem;}
   .asist-row{display:flex;align-items:center;gap:.7rem;padding:.6rem .85rem;border:1px solid var(--border);border-radius:10px;background:var(--paper);transition:all .2s;}
   .asist-nombre{flex:1;font-size:.86rem;font-weight:500;}
-  .asist-btns{display:flex;gap:.4rem;}
-  .asist-btn{width:40px;height:40px;border-radius:10px;border:2px solid var(--border);background:var(--paper);font-size:.9rem;cursor:pointer;font-weight:800;transition:all .18s;display:flex;align-items:center;justify-content:center;opacity:.45;letter-spacing:0;}
-  .asist-btn:hover{transform:scale(1.1);opacity:.8;}
-  .asist-btn.selected-P{background:#4a7c59;border-color:#4a7c59;color:white;opacity:1;transform:scale(1.12);box-shadow:0 3px 10px rgba(74,124,89,.45);font-size:1.05rem;}
-  .asist-btn.selected-A{background:#c0392b;border-color:#c0392b;color:white;opacity:1;transform:scale(1.12);box-shadow:0 3px 10px rgba(192,57,43,.45);font-size:1.05rem;}
-  .asist-btn.selected-T{background:#d4a017;border-color:#d4a017;color:var(--ink);opacity:1;transform:scale(1.12);box-shadow:0 3px 10px rgba(212,160,23,.4);font-size:1.05rem;}
-  .asist-row.estado-P{border-color:rgba(74,124,89,.5);background:rgba(74,124,89,.06);}
-  .asist-row.estado-A{border-color:rgba(192,57,43,.4);background:rgba(192,57,43,.05);}
-  .asist-row.estado-T{border-color:rgba(212,160,23,.5);background:rgba(212,160,23,.06);}
+  .asist-btns{display:flex;gap:.35rem;}
+  .asist-btn{width:34px;height:34px;border-radius:8px;border:2px solid var(--border);background:white;font-size:.82rem;cursor:pointer;font-weight:700;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+  .asist-btn:hover{transform:scale(1.08);}
+  .asist-btn.selected-P{background:#4a7c59;border-color:#4a7c59;color:white;}
+  .asist-btn.selected-A{background:#c0392b;border-color:#c0392b;color:white;}
+  .asist-btn.selected-T{background:#d4a017;border-color:#d4a017;color:var(--ink);}
+  .asist-row.estado-P{border-color:rgba(74,124,89,.4);background:rgba(74,124,89,.04);}
+  .asist-row.estado-A{border-color:rgba(192,57,43,.3);background:rgba(192,57,43,.03);}
+  .asist-row.estado-T{border-color:rgba(212,160,23,.4);background:rgba(212,160,23,.04);}
 
   /* nota inline en asistencia */
   .nota-inline{width:52px;font-size:.8rem;padding:.28rem .4rem;text-align:center;background:white;border:1px solid var(--border);border-radius:6px;}
@@ -660,29 +660,24 @@
   padding: 0 .5rem;
   border-radius: 8px;
   border: 2px solid var(--border);
-  background: var(--paper);
+  background: white;
   font-family: 'DM Sans', sans-serif;
   font-size: .78rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all .18s;
+  transition: all .15s;
   display: flex;
   align-items: center;
   justify-content: center;
   letter-spacing: .02em;
   color: var(--ink);
   white-space: nowrap;
-  opacity: .5;
 }
-.letra-btn:hover { transform: scale(1.1); opacity: .85; }
+.letra-btn:hover { transform: scale(1.08); }
 .letra-btn.sel-letra {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--ink);
-  opacity: 1;
-  transform: scale(1.15);
-  box-shadow: 0 3px 10px rgba(212,160,23,.5);
-  font-size: .88rem;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: white;
 }
 /* Configuración de letras */
 .letras-config-panel {
@@ -899,10 +894,10 @@
   .cal-bloque-titulo{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.1rem;}
   .letra-btns{display:flex;gap:.3rem;flex-wrap:wrap;}
   .letra-btn{min-width:36px;height:36px;padding:0 .5rem;border-radius:8px;border:2px solid var(--border);
-    background:var(--paper);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;
-    transition:all .18s;display:flex;align-items:center;justify-content:center;color:var(--ink);opacity:.5;}
-  .letra-btn:hover{transform:scale(1.1);opacity:.85;}
-  .letra-btn.sel-letra{background:var(--gold);border-color:var(--gold);color:var(--ink);opacity:1;transform:scale(1.15);box-shadow:0 3px 10px rgba(212,160,23,.5);font-size:.88rem;}
+    background:white;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;
+    transition:all .15s;display:flex;align-items:center;justify-content:center;color:var(--ink);}
+  .letra-btn:hover{transform:scale(1.08);}
+  .letra-btn.sel-letra{background:var(--ink);border-color:var(--ink);color:white;}
   .letras-leyenda{display:flex;flex-direction:column;gap:.1rem;margin-top:.3rem;}
   .leyenda-item{font-size:.65rem;color:var(--muted);display:flex;align-items:baseline;gap:.3rem;line-height:1.3;}
   .leyenda-item strong{font-weight:700;color:var(--ink);font-size:.7rem;min-width:20px;}
@@ -935,15 +930,6 @@
   .leyenda-global-desc:focus{outline:2px solid var(--gold);background:white;}
   .leyenda-global-hint{font-size:.68rem;color:var(--muted);margin-top:.1rem;font-style:italic;}
 
-
-  /* GESTIÓN DE ALUMNOS DESDE ASISTENCIA */
-  .ga-list{display:flex;flex-direction:column;gap:.4rem;max-height:340px;overflow-y:auto;margin-bottom:1rem;}
-  .ga-row{display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;border:1px solid var(--border);border-radius:9px;background:var(--paper);}
-  .ga-num{font-size:.72rem;color:var(--muted);width:20px;text-align:center;flex-shrink:0;}
-  .ga-nombre-input{flex:1;font-size:.86rem;border:1px solid transparent;border-radius:6px;padding:.3rem .5rem;background:transparent;font-family:'DM Sans',sans-serif;color:var(--ink);cursor:default;}
-  .ga-nombre-input:focus{background:var(--paper);border-color:var(--gold);outline:2px solid var(--gold);cursor:text;}
-  .ga-add-row{display:flex;gap:.5rem;margin-top:.5rem;}
-  .ga-add-input{flex:1;font-size:.86rem;}
 </style>
 </head>
 <body>
@@ -971,6 +957,7 @@
 <div class="nav-tabs">
   <div class="nav-tab active"   onclick="goTab('inicio',this)">🏠 Inicio</div>
   <div class="nav-tab"          onclick="goTab('calendario',this)">📅 Calendario</div>
+  <div class="nav-tab"          onclick="goTab('alumnos',this)">👥 Alumnos</div>
   <div class="nav-tab"          onclick="goTab('asistencia',this)">📚 Clase del día</div>
   <div class="nav-tab"          onclick="goTab('historial',this)">📊 Historial</div>
   <div class="nav-tab"          onclick="goTab('horario',this)">🕐 Horario</div>
@@ -1064,6 +1051,30 @@
 </div>
 
 <!-- ═══ ALUMNOS ═══ -->
+<div class="tab-content" id="tab-alumnos">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
+    <div class="section-title" style="margin:0;">Mis alumnos</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+      <button class="btn btn-ghost" onclick="descargarPlantilla()">📄 Plantilla CSV</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('import-alumnos-input').click()">📥 Importar CSV/Excel</button>
+      <input type="file" id="import-alumnos-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="importarAlumnos(event)">
+      <button class="btn btn-ghost" id="btn-sel-multiple" onclick="toggleModoSeleccion()" title="Seleccionar varios para eliminar">☑️ Seleccionar</button>
+      <div id="barra-seleccion" style="display:none;align-items:center;gap:.5rem;">
+        <span id="sel-count" style="font-size:.82rem;color:var(--muted);font-weight:600;">0 seleccionados</span>
+        <button class="btn btn-ghost btn-sm" onclick="seleccionarTodosAlumnos()">Todos</button>
+        <button class="btn btn-sm" style="background:rgba(192,57,43,.15);color:var(--accent);border:1px solid rgba(192,57,43,.35);" onclick="eliminarSeleccionados()">🗑️ Eliminar seleccionados</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleModoSeleccion()">Cancelar</button>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('alumno')">+ Nuevo alumno</button>
+    </div>
+  </div>
+  <div class="school-bar" id="filtro-alumnos-pills"></div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Buscar por nombre…" id="search-alumno" oninput="renderTablaAlumnos()">
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;"><div id="tabla-alumnos-wrap"></div></div>
+</div>
 
 <!-- ═══ CLASE DEL DÍA (Asistencia + Seguimiento) ═══ -->
 <div class="tab-content" id="tab-asistencia">
@@ -1099,10 +1110,7 @@
 
   <!-- SUB-PANEL: ASISTENCIA -->
   <div class="clase-sub-panel active" id="clase-panel-asist">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem;">
-      <div id="asist-summary-bar" class="asist-summary" style="margin-bottom:0;flex:1;"></div>
-      <button class="btn btn-ghost btn-sm" id="btn-gestionar-alumnos" onclick="abrirGestorAlumnos()" style="display:none;">👥 Gestionar alumnos</button>
-    </div>
+    <div id="asist-summary-bar" class="asist-summary"></div>
     <div class="asist-list" id="asist-lista"></div>
     <div class="empty-state" id="asist-empty"><div class="big">📋</div><div>Seleccioná una escuela, curso y materia</div></div>
     <div id="leyenda-letras-bloque" style="display:none;"></div>
@@ -1153,10 +1161,10 @@
     <div class="card" style="padding:0;overflow:hidden;">
       <div class="seg-indicador-header">
         <div>Alumno</div>
-        <div class="ind-name">🧠 COMPRENDE</div>
+        <div class="ind-name">🧠 INTERPRETA</div>
         <div class="ind-name">🔍 ANALIZA</div>
         <div class="ind-name hide-mobile">⚙️ RESUELVE</div>
-        <div class="ind-name hide-mobile">💬 COMUNICA</div>
+        <div class="ind-name hide-mobile">💬 TRANSMITE</div>
         <div class="ind-name">Resumen</div>
         <div class="ind-name hide-mobile">📝 Observación</div>
       </div>
@@ -2354,7 +2362,7 @@ function deleteCurso(id){
 // SEGUIMIENTO
 // ══════════════════════
 const INDICADORES=['interpreta','analiza','resuelve','transmite'];
-const IND_LABELS={interpreta:'🧠 Comprende y argumenta',analiza:'🔍 Analiza e interpreta',resuelve:'⚙️ Resuelve situaciones',transmite:'💬 Comunica con vocabulario'};
+const IND_LABELS={interpreta:'🧠 Interpreta',analiza:'🔍 Analiza',resuelve:'⚙️ Resuelve',transmite:'💬 Transmite'};
 
 function getSeg(alumnoId,materiaId,fecha){
   if(!state.seguimiento[alumnoId])state.seguimiento[alumnoId]={};
@@ -2419,7 +2427,7 @@ function renderSeguimiento(){
         <span style="cursor:pointer;" onclick="abrirDetalleSeg(${al.id})">${al.nombre}</span>
       </div>
       ${INDICADORES.map((ind,i)=>{
-        const labels={interpreta:'🧠 Comprende y argumenta',analiza:'🔍 Analiza e interpreta',resuelve:'⚙️ Resuelve situaciones',transmite:'💬 Comunica con vocabulario'};
+        const labels={interpreta:'🧠 Interpreta',analiza:'🔍 Analiza',resuelve:'⚙️ Resuelve',transmite:'💬 Transmite'};
         return`<div class="ind-toggle ${i>=2?'hide-mobile':''}" style="flex-direction:column;gap:.25rem;">
           <div style="font-size:.64rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:none;" class="ind-label-mobile">${labels[ind]}</div>
           <div style="display:flex;gap:.25rem;justify-content:center;">
@@ -2735,7 +2743,7 @@ function renderTrayDetalleTab(alumnoId){
     const chip=v=>v==='ok'?'<span style="color:var(--sage);font-weight:700;">✓</span>':v==='ep'?'<span style="color:var(--gold);">~</span>':v==='no'?'<span style="color:var(--accent);">✗</span>':'<span style="color:var(--border);">·</span>';
     return`<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.82rem;">
       <span style="flex:1;font-weight:500;">${m.nombre}</span>
-      <span title="Comprende y argumenta">${chip(latest.interpreta)}</span><span title="Analiza e interpreta">${chip(latest.analiza)}</span><span title="Resuelve situaciones">${chip(latest.resuelve)}</span><span title="Comunica con vocabulario">${chip(latest.transmite)}</span>
+      <span title="Interpreta">${chip(latest.interpreta)}</span><span title="Analiza">${chip(latest.analiza)}</span><span title="Resuelve">${chip(latest.resuelve)}</span><span title="Transmite">${chip(latest.transmite)}</span>
       ${latest.obs?`<span style="color:var(--muted);font-size:.72rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${latest.obs}">${latest.obs}</span>`:''}
     </div>`;
   }).join(''):'';
@@ -2978,7 +2986,7 @@ function exportarCSVSeguimiento(){
   const cursoId=parseInt(document.getElementById('seg-curso').value);
   const als=state.alumnos.filter(a=>a.cursoId===cursoId);
   const curso=getCurso(cursoId);const esc=getEscuela(state.filtroEscuelaSeg);
-  let csv=`Escuela,Curso,Alumno,Fecha,Comprende y argumenta,Analiza e interpreta,Resuelve situaciones,Comunica con vocabulario,Observaciones\n`;
+  let csv=`Escuela,Curso,Alumno,Fecha,Interpreta,Analiza,Resuelve,Transmite,Observaciones\n`;
   als.forEach(al=>{
     const fechas=Object.keys(state.seguimiento[al.id]||{}).sort();
     if(!fechas.length){
@@ -4770,161 +4778,140 @@ function _notaClass(n) {
 
 // ── ASISTENCIA COMPLETA ──────────────────────────────────────────
 function imprimirAsistenciaCompleta() {
-  // Imprimir SOLO el curso/materia/fecha actualmente visible
-  const cursoId   = parseInt(document.getElementById('asist-curso')?.value);
-  const materiaId = parseInt(document.getElementById('asist-materia')?.value);
-  const fecha     = document.getElementById('asist-fecha')?.value;
+  // Recopilar filtro activo
+  const escuela = state.filtroEscuelaAsist ? getEscuela(state.filtroEscuelaAsist) : null;
 
-  if (!cursoId || !materiaId || !fecha) {
-    showToast('⚠️ Seleccioná escuela, curso, materia y fecha antes de imprimir');
+  // Determinar cursos a imprimir
+  const cursos = escuela
+    ? state.cursos.filter(c => c.escuelaId === escuela.id)
+    : state.cursos;
+
+  if (!cursos.length) { showToast('⚠️ No hay cursos para imprimir'); return; }
+
+  let html = _encabezadoPrint(
+    'Registro de asistencia',
+    `${escuela ? escuela.nombre : 'Todas las escuelas'} · Todas las fechas registradas`
+  );
+
+  let totalSecciones = 0;
+
+  cursos.forEach(curso => {
+    const mats = getMateriasDelCurso(curso.id);
+    const als  = state.alumnos.filter(a => a.cursoId === curso.id);
+    if (!als.length) return;
+
+    const escCurso = getEscuela(curso.escuelaId);
+
+    mats.forEach(mat => {
+      const prefix = `${curso.id}_${mat.id}_`;
+      const fechas = [...new Set(
+        Object.keys(state.asistencia)
+          .filter(k => k.startsWith(prefix))
+          .map(k => k.replace(prefix, ''))
+      )].sort();
+
+      if (!fechas.length) return;
+      totalSecciones++;
+
+      // Conteos globales para resumen
+      let totP = 0, totA = 0, totT = 0, totTotal = 0;
+      als.forEach(al => {
+        fechas.forEach(f => {
+          const d = state.asistencia[`${prefix}${f}`]?.[al.id];
+          if (d?.estado) {
+            totTotal++;
+            if (d.estado === 'P') totP++;
+            else if (d.estado === 'A') totA++;
+            else if (d.estado === 'T') totT++;
+          }
+        });
+      });
+
+      html += `<h2>${escCurso ? escCurso.nombre + ' · ' : ''}${curso.nombre} — ${mat.nombre}</h2>`;
+      html += `<div class="resumen-bar">
+        <span class="rs rs-p">✓ Presentes: ${totP}</span>
+        <span class="rs rs-a">✗ Ausentes: ${totA}</span>
+        <span class="rs rs-t">T Tardes: ${totT}</span>
+        <span style="color:#888;">${fechas.length} fecha(s) · ${als.length} alumno(s)</span>
+      </div>`;
+
+      // Tabla: alumno × fecha
+      html += `<table>
+        <thead><tr>
+          <th style="min-width:130px;">Alumno</th>
+          ${fechas.map(f => {
+            const tema = state.temas[`${prefix}${f}`];
+            return `<th style="text-align:center; min-width:52px;">
+              ${f.slice(8,10)}/${f.slice(5,7)}/${f.slice(0,4)}
+              ${tema?.titulo ? `<br><span style="font-size:8px;color:#d4a017;font-weight:400;">${tema.titulo.slice(0,14)}${tema.titulo.length>14?'…':''}</span>` : ''}
+            </th>`;
+          }).join('')}
+          <th style="text-align:center;">% Asist.</th>
+          <th style="text-align:center;">Prom. clase</th>
+        </tr></thead>
+        <tbody>
+        ${als.map(al => {
+          const P = fechas.filter(f => state.asistencia[`${prefix}${f}`]?.[al.id]?.estado === 'P').length;
+          const A = fechas.filter(f => state.asistencia[`${prefix}${f}`]?.[al.id]?.estado === 'A').length;
+          const T = fechas.filter(f => state.asistencia[`${prefix}${f}`]?.[al.id]?.estado === 'T').length;
+          const pct = fechas.length ? Math.round(P / fechas.length * 100) : 0;
+          const notas = fechas.map(f => state.asistencia[`${prefix}${f}`]?.[al.id]?.nota).filter(n => n != null);
+          const promN = notas.length ? (notas.reduce((a,b) => a+b, 0) / notas.length).toFixed(1) : null;
+
+          return `<tr>
+            <td>${al.nombre}</td>
+            ${fechas.map(f => {
+              const d = state.asistencia[`${prefix}${f}`]?.[al.id];
+              const e = d?.estado;
+              const n = d?.nota;
+              const cls = e==='P'?'hP':e==='A'?'hA':e==='T'?'hT':'hN';
+              return `<td style="text-align:center;">
+                <span class="dot ${cls}" title="${e||'—'}"></span>
+                ${n != null ? `<br><span style="font-size:8px;color:#555;">${n}</span>` : ''}
+              </td>`;
+            }).join('')}
+            <td style="text-align:center; font-weight:700; color:${pct<60?'#c0392b':pct<80?'#d4a017':'#4a7c59'};">
+              ${pct}%<br><span style="font-weight:400;color:#888;font-size:9px;">${P}P ${A}A ${T}T</span>
+            </td>
+            <td style="text-align:center;">
+              ${promN ? `<span class="nota-badge ${_notaClass(parseFloat(promN))}">${promN}</span>` : '<span style="color:#ccc;">—</span>'}
+            </td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>`;
+
+      // Leyenda de temas si hay alguno
+      const temasConNombre = fechas.filter(f => state.temas[`${prefix}${f}`]?.titulo);
+      if (temasConNombre.length) {
+        html += `<div style="font-size:9px;color:#666;margin-bottom:14px;">
+          <strong>📖 Temas de clase:</strong><br>
+          ${temasConNombre.map(f => {
+            const t = state.temas[`${prefix}${f}`];
+            return `<span style="margin-right:12px;">${f.slice(8,10)}/${f.slice(5,7)}: <em>${t.titulo}</em>${t.descripcion?' — '+t.descripcion:''}</span>`;
+          }).join('<br>')}
+        </div>`;
+      }
+
+      html += `<hr class="seccion-sep">`;
+    });
+  });
+
+  if (!totalSecciones) {
+    showToast('⚠️ No hay registros de asistencia para imprimir');
     return;
   }
 
-  const curso   = state.cursos.find(c => c.id === cursoId);
-  const mat     = getMateriasDelCurso(cursoId).find(m => m.id === materiaId);
-  const escuela = curso ? getEscuela(curso.escuelaId) : null;
-  const als     = state.alumnos.filter(a => a.cursoId === cursoId);
-
-  if (!als.length) { showToast('⚠️ No hay alumnos en este curso'); return; }
-
-  const key    = `${cursoId}_${materiaId}_${fecha}`;
-  const reg    = state.asistencia[key] || {};
-  const tema   = state.temas?.[key];
-
-  const fechaFmt = fecha
-    ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'})
-    : '—';
-
-  // Conteos
-  let totP=0, totA=0, totT=0, totSin=0;
-  als.forEach(al => {
-    const e = reg[al.id]?.estado;
-    if (e==='P') totP++; else if (e==='A') totA++; else if (e==='T') totT++; else totSin++;
-  });
-  const pctAsist = als.length ? Math.round((totP/(als.length))*100) : 0;
-
-  // Letras configuradas (para leyenda)
-  const letrasConfig = window._letras || [];
-
-  const estilos = `
-    <style>
-      *{margin:0;padding:0;box-sizing:border-box;}
-      body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1a1a2e;font-size:11px;padding:18px 22px;}
-      .encabezado{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1a1a2e;padding-bottom:10px;margin-bottom:14px;}
-      .logo{font-size:18px;font-weight:900;letter-spacing:-0.5px;color:#1a1a2e;}
-      .logo span{color:#d4a017;}
-      .titulo{font-size:15px;font-weight:700;margin-top:3px;}
-      .meta{font-size:10px;color:#666;margin-top:2px;}
-      .fecha-grande{font-size:13px;font-weight:700;color:#1a1a2e;text-align:right;}
-      .fecha-sub{font-size:9px;color:#888;text-align:right;margin-top:2px;}
-      .stats-bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
-      .stat{padding:5px 12px;border-radius:8px;font-weight:700;font-size:11px;display:flex;align-items:center;gap:5px;}
-      .st-p{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
-      .st-a{background:#fde8e8;color:#c0392b;border:1px solid #f5a5a5;}
-      .st-t{background:#fff8e1;color:#9a7000;border:1px solid #ffe082;}
-      .st-s{background:#f5f5f5;color:#888;border:1px solid #ddd;}
-      .st-pct{background:#e8eaf6;color:#283593;border:1px solid #9fa8da;margin-left:auto;font-size:13px;}
-      table{width:100%;border-collapse:collapse;margin-bottom:12px;}
-      th{background:#1a1a2e;color:#d4a017;font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;padding:6px 8px;text-align:left;}
-      th.center{text-align:center;}
-      td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:middle;}
-      tr:nth-child(even) td{background:#fafafa;}
-      .num{font-size:10px;color:#aaa;width:22px;text-align:center;}
-      .nombre{font-weight:600;font-size:11px;}
-      .estado-P{background:#4a7c59;color:white;font-weight:800;border-radius:6px;padding:2px 7px;display:inline-block;font-size:11px;}
-      .estado-A{background:#c0392b;color:white;font-weight:800;border-radius:6px;padding:2px 7px;display:inline-block;font-size:11px;}
-      .estado-T{background:#d4a017;color:#1a1a2e;font-weight:800;border-radius:6px;padding:2px 7px;display:inline-block;font-size:11px;}
-      .estado-N{background:#eee;color:#999;font-weight:600;border-radius:6px;padding:2px 7px;display:inline-block;font-size:11px;}
-      .letra-badge{background:#e8eaf6;color:#283593;font-weight:700;border-radius:5px;padding:2px 6px;display:inline-block;font-size:10px;}
-      .obs{font-size:10px;color:#555;font-style:italic;max-width:180px;}
-      .tema-box{background:#fff8e1;border-left:3px solid #d4a017;padding:6px 10px;margin-bottom:12px;font-size:10px;}
-      .tema-box strong{color:#9a7000;}
-      .leyenda{display:flex;gap:14px;flex-wrap:wrap;font-size:9.5px;color:#666;border-top:1px solid #eee;padding-top:8px;margin-top:4px;}
-      .ley-item{display:flex;align-items:center;gap:5px;}
-      .firma-row{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:20px;padding-top:10px;}
-      .firma-campo{border-top:1px solid #999;padding-top:4px;text-align:center;font-size:9px;color:#888;}
-      @media print{
-        body{padding:10px 14px;}
-        @page{size:A4 portrait;margin:10mm 12mm;}
-      }
-    </style>
-  `;
-
-  const temaHtml = tema?.titulo
-    ? `<div class="tema-box"><strong>📖 Tema de clase:</strong> ${tema.titulo}${tema.descripcion ? ' — ' + tema.descripcion : ''}</div>`
-    : '';
-
-  const tablaRows = als.map((al, idx) => {
-    const d = reg[al.id] || {};
-    const e = d.estado;
-    const n = d.nota != null ? String(d.nota) : null;
-    const eLabel = e === 'P' ? '✓ Presente' : e === 'A' ? '✗ Ausente' : e === 'T' ? '⟳ Tarde' : '—';
-    const eCls   = e === 'P' ? 'estado-P' : e === 'A' ? 'estado-A' : e === 'T' ? 'estado-T' : 'estado-N';
-    const obs    = d.obs || '';
-    return `<tr>
-      <td class="num">${idx+1}</td>
-      <td class="nombre">${al.nombre}</td>
-      <td style="text-align:center;"><span class="${eCls}">${eLabel}</span></td>
-      <td style="text-align:center;">${n ? `<span class="letra-badge">${n}</span>` : '<span style="color:#ccc;">—</span>'}</td>
-      <td class="obs">${obs}</td>
-    </tr>`;
-  }).join('');
-
-  const leyendaLetras = letrasConfig.length
-    ? letrasConfig.map(l => `<span class="ley-item"><span class="letra-badge">${l.label}</span> ${l.desc || ''}</span>`).join('')
-    : '';
-
-  const html = `
-    ${estilos}
-    <div class="encabezado">
-      <div>
-        <div class="logo">Profe<span>Desk</span></div>
-        <div class="titulo">${escuela ? escuela.nombre + ' · ' : ''}${curso ? curso.nombre : ''} — ${mat ? mat.nombre : ''}</div>
-        <div class="meta">Registro de asistencia</div>
-      </div>
-      <div>
-        <div class="fecha-grande">${fechaFmt}</div>
-        <div class="fecha-sub">Impreso: ${new Date().toLocaleDateString('es-AR')}</div>
-      </div>
-    </div>
-
-    <div class="stats-bar">
-      <div class="stat st-p">✓ Presentes: ${totP}</div>
-      <div class="stat st-a">✗ Ausentes: ${totA}</div>
-      <div class="stat st-t">⟳ Tarde: ${totT}</div>
-      ${totSin ? `<div class="stat st-s">· Sin dato: ${totSin}</div>` : ''}
-      <div class="stat st-pct">Asistencia: ${pctAsist}% (${als.length} alumnos)</div>
-    </div>
-
-    ${temaHtml}
-
-    <table>
-      <thead><tr>
-        <th style="width:24px;">#</th>
-        <th>Apellido y Nombre</th>
-        <th class="center" style="width:110px;">Asistencia</th>
-        <th class="center" style="width:80px;">Calificación</th>
-        <th style="width:200px;">Observaciones</th>
-      </tr></thead>
-      <tbody>${tablaRows}</tbody>
-    </table>
-
-    <div class="leyenda">
-      <span class="ley-item"><span class="estado-P">✓ Presente</span></span>
-      <span class="ley-item"><span class="estado-A">✗ Ausente</span></span>
-      <span class="ley-item"><span class="estado-T">⟳ Tarde</span></span>
-      ${leyendaLetras}
-    </div>
-
-    <div class="firma-row">
-      <div class="firma-campo">Firma del docente</div>
-      <div class="firma-campo">Sello / Visto preceptoría</div>
-    </div>
-  `;
+  // Leyenda final
+  html += `<div style="font-size:9px;color:#888;margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;">
+    <span><span class="dot hP"></span> Presente</span>
+    <span><span class="dot hA"></span> Ausente</span>
+    <span><span class="dot hT"></span> Tarde</span>
+    <span><span class="dot hN"></span> Sin dato</span>
+  </div>`;
 
   _abrirVentanaPrint(html);
-  showToast('🖨️ Preparando impresión…');
-
+  showToast('🖨️ Preparando impresión de asistencia completa…');
 }
 
 // ── SEGUIMIENTO COMPLETO ──────────────────────────────────────────
@@ -5050,7 +5037,7 @@ function imprimirSeguimientoCompleto() {
     <span class="ind-no">✗</span> No logrado &nbsp;
     <span class="ind-nd">·</span> Sin registro
     &nbsp;&nbsp;
-    <strong>Columnas por fecha:</strong> C = Comprende · A = Analiza · R = Resuelve · V = Vocabulario
+    <strong>Columnas por fecha:</strong> I = Interpreta · A = Analiza · R = Resuelve · T = Transmite
   </div>`;
 
   _abrirVentanaPrint(html);
@@ -5099,10 +5086,10 @@ window.addEventListener('beforeinstallprompt', function(e) {
 
 /* ── 1. Datos por defecto y persistencia ── */
 var DEFS = [
-  {key:'interpreta', emoji:'🧠', label:'Comprende y argumenta',  hint:'Comprensión de consignas y argumentación'},
-  {key:'analiza',    emoji:'🔍', label:'Analiza e interpreta',     hint:'Análisis e interpretación de fuentes'},
-  {key:'resuelve',   emoji:'⚙️', label:'Resuelve situaciones',    hint:'Resolución de situaciones problemáticas'},
-  {key:'transmite',  emoji:'💬', label:'Comunica con vocabulario',   hint:'Comunicación oral y escrita con vocabulario específico'},
+  {key:'interpreta', emoji:'🧠', label:'Interpreta',  hint:'Comprensión e interpretación'},
+  {key:'analiza',    emoji:'🔍', label:'Analiza',     hint:'Análisis y pensamiento crítico'},
+  {key:'resuelve',   emoji:'⚙️', label:'Resuelve',    hint:'Resolución de situaciones'},
+  {key:'transmite',  emoji:'💬', label:'Transmite',   hint:'Comunicación de ideas'},
 ];
 var LS = 'pd_indicadores_v1';
 
@@ -6224,179 +6211,5 @@ function renderLeyendaLetras() {
   </div>
 </div>
 
-
-<!-- MODAL GESTIÓN DE ALUMNOS DESDE ASISTENCIA -->
-<div class="modal-bg" id="modal-gestor-alumnos">
-  <div class="modal" style="max-width:520px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
-      <div class="modal-title" id="ga-titulo" style="margin:0;">👥 Alumnos del curso</div>
-      <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="descargarPlantilla()" title="Descargar plantilla CSV">📄 Plantilla</button>
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ga-import-input').click()" title="Importar desde CSV o Excel">📥 Importar</button>
-        <input type="file" id="ga-import-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="gaImportar(event)">
-      </div>
-    </div>
-    <div style="position:relative;margin-bottom:.7rem;">
-      <span style="position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.88rem;pointer-events:none;">🔍</span>
-      <input type="text" id="ga-buscar" placeholder="Buscar alumno…" oninput="gaRenderLista()" style="padding-left:2.1rem;">
-    </div>
-    <div style="font-size:.72rem;color:var(--muted);margin-bottom:.4rem;" id="ga-count"></div>
-    <div class="ga-list" id="ga-lista"></div>
-    <div class="ga-add-row">
-      <input class="ga-add-input" id="ga-nuevo-nombre" type="text" placeholder="Nombre y apellido del nuevo alumno…" onkeydown="if(event.key==='Enter')gaAgregar()">
-      <button class="btn btn-success" onclick="gaAgregar()">+ Agregar</button>
-    </div>
-    <div class="form-actions" style="margin-top:1rem;">
-      <button class="btn btn-ghost" onclick="closeModal('gestor-alumnos')">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ══ GESTOR DE ALUMNOS DESDE ASISTENCIA ══ */
-var _gaCursoId = null;
-
-function abrirGestorAlumnos() {
-  const cursoId = parseInt(document.getElementById('asist-curso')?.value);
-  if (!cursoId) { showToast('⚠️ Seleccioná un curso primero'); return; }
-  _gaCursoId = cursoId;
-  const curso = state.cursos.find(c => c.id === cursoId);
-  const esc   = curso ? getEscuela(curso.escuelaId) : null;
-  const titulo = (esc ? esc.nombre + ' · ' : '') + (curso ? curso.nombre : 'Curso');
-  document.getElementById('ga-titulo').textContent = '👥 ' + titulo;
-  document.getElementById('ga-nuevo-nombre').value = '';
-  document.getElementById('ga-buscar').value = '';
-  gaRenderLista();
-  document.getElementById('modal-gestor-alumnos').classList.add('open');
-}
-
-function gaRenderLista() {
-  const cursoId = _gaCursoId || parseInt(document.getElementById('asist-curso')?.value);
-  const buscar  = (document.getElementById('ga-buscar')?.value || '').toLowerCase().trim();
-  let als = state.alumnos
-    .filter(a => a.cursoId === cursoId)
-    .sort((a,b) => a.nombre.localeCompare(b.nombre, 'es'));
-  const total = als.length;
-  if (buscar) als = als.filter(a => a.nombre.toLowerCase().includes(buscar));
-
-  const countEl = document.getElementById('ga-count');
-  if (countEl) countEl.textContent = buscar
-    ? `${als.length} de ${total} alumno${total!==1?'s':''}` 
-    : `${total} alumno${total!==1?'s':''}`;
-
-  const lista = document.getElementById('ga-lista');
-  if (!als.length) {
-    lista.innerHTML = buscar
-      ? '<div style="color:var(--muted);text-align:center;padding:1rem;">Sin resultados para esa búsqueda.</div>'
-      : '<div style="color:var(--muted);text-align:center;padding:1rem;">Sin alumnos aún. Agregá el primero abajo.</div>';
-    return;
-  }
-  lista.innerHTML = als.map((al, i) => `
-    <div class="ga-row" id="ga-row-${al.id}">
-      <span class="ga-num">${i+1}</span>
-      <input class="ga-nombre-input" id="ga-input-${al.id}"
-        value="${al.nombre}"
-        onblur="gaGuardarNombre(${al.id}, this.value)"
-        onkeydown="if(event.key==='Enter'){this.blur();}"
-        title="Clic para editar el nombre">
-      <button class="btn-icon" title="Ver trayectoria del alumno" onclick="gaVerTrayectoria(${al.id})">📋</button>
-      <button class="btn-icon" title="Editar nombre" onclick="document.getElementById('ga-input-${al.id}').focus()">✏️</button>
-      <button class="btn-icon" title="Eliminar alumno" onclick="gaEliminar(${al.id})" style="color:var(--accent);">🗑️</button>
-    </div>
-  `).join('');
-}
-
-function gaVerTrayectoria(alumnoId) {
-  // Cierra el gestor y abre el tray de trayectoria
-  closeModal('gestor-alumnos');
-  setTimeout(() => { abrirTrayectoria(alumnoId); }, 200);
-}
-
-function gaGuardarNombre(alumnoId, nuevoNombre) {
-  const nombre = nuevoNombre.trim();
-  if (!nombre) { showToast('⚠️ El nombre no puede estar vacío'); gaRenderLista(); return; }
-  const al = state.alumnos.find(a => a.id === alumnoId);
-  if (!al) return;
-  if (al.nombre === nombre) return; // sin cambios
-  al.nombre = nombre;
-  saveLS();
-  showToast('✅ Nombre actualizado');
-  renderAll();
-  gaRenderLista();
-}
-
-function gaEliminar(alumnoId) {
-  const al = state.alumnos.find(a => a.id === alumnoId);
-  if (!al) return;
-  if (!confirm(`¿Eliminar a "${al.nombre}"?
-Se perderán sus registros de asistencia y seguimiento.`)) return;
-  state.alumnos = state.alumnos.filter(a => a.id !== alumnoId);
-  saveLS();
-  showToast('🗑️ Alumno eliminado');
-  renderAll();
-  gaRenderLista();
-}
-
-function gaAgregar() {
-  const cursoId = _gaCursoId || parseInt(document.getElementById('asist-curso')?.value);
-  const input   = document.getElementById('ga-nuevo-nombre');
-  const nombre  = input.value.trim();
-  if (!nombre)  { showToast('⚠️ Escribí el nombre del alumno'); input.focus(); return; }
-  if (!cursoId) { showToast('⚠️ No hay curso seleccionado'); return; }
-  // Verificar duplicado
-  const existe = state.alumnos.some(a => a.cursoId === cursoId && a.nombre.toLowerCase() === nombre.toLowerCase());
-  if (existe) { showToast('⚠️ Ya existe un alumno con ese nombre'); return; }
-  state.alumnos.push({ id: Date.now(), nombre, cursoId });
-  saveLS();
-  showToast('✅ ' + nombre + ' agregado');
-  input.value = '';
-  input.focus();
-  renderAll();
-  // limpiar búsqueda para que aparezca el nuevo
-  const busEl = document.getElementById('ga-buscar');
-  if (busEl) busEl.value = '';
-  gaRenderLista();
-  setTimeout(() => {
-    const lista = document.getElementById('ga-lista');
-    if (lista) lista.scrollTop = lista.scrollHeight;
-  }, 100);
-}
-
-function gaImportar(event) {
-  // Reusar la función importarAlumnos existente, luego actualizar el gestor
-  const cursoId = _gaCursoId;
-  if (typeof importarAlumnos === 'function') {
-    // Parchear temporalmente el select de alumnos para que apunte al curso activo
-    const fakeEvent = { target: event.target };
-    // Llamar directamente si podemos, sino avisar
-    importarAlumnos(fakeEvent);
-    setTimeout(() => {
-      gaRenderLista();
-      showToast('📥 Importación completada');
-    }, 800);
-  }
-  event.target.value = '';
-}
-
-/* ── Mostrar/ocultar botón según curso seleccionado ── */
-const _origRenderAsistLista = window.renderAsistLista;
-if (typeof _origRenderAsistLista === 'function') {
-  window.renderAsistLista = function() {
-    _origRenderAsistLista.apply(this, arguments);
-    const cursoId = parseInt(document.getElementById('asist-curso')?.value);
-    const btn = document.getElementById('btn-gestionar-alumnos');
-    if (btn) btn.style.display = (cursoId && !isNaN(cursoId)) ? 'inline-flex' : 'none';
-  };
-}
-const _origClaseOnCursoChange = window.claseOnCursoChange;
-if (typeof _origClaseOnCursoChange === 'function') {
-  window.claseOnCursoChange = function() {
-    _origClaseOnCursoChange.apply(this, arguments);
-    const cursoId = parseInt(document.getElementById('asist-curso')?.value);
-    const btn = document.getElementById('btn-gestionar-alumnos');
-    if (btn) btn.style.display = (cursoId && !isNaN(cursoId)) ? 'inline-flex' : 'none';
-  };
-}
-</script>
 </body>
 </html>
