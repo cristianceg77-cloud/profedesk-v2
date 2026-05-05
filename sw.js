@@ -1,25 +1,22 @@
-const CACHE_NAME = 'profedesk-eco-v1';
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap',
-  'https://accounts.google.com/gsi/client'
-];
-
-// Instalación y cacheo de recursos
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-  );
+// ProfeDesk Service Worker v2
+// Fuerza bypass del cache — sirve siempre desde la red
+self.addEventListener('fetch', function(event) {
+  event.respondWith(fetch(event.request));
 });
 
-// Estrategia: Network First (intentar red, si falla usar cache)
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
+self.addEventListener('install', function() {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function(event) {
+  // Limpiar todos los caches viejos
+  event.waitUntil(
+    caches.keys().then(function(keys) {
+      return Promise.all(keys.map(function(key) {
+        return caches.delete(key);
+      }));
+    }).then(function() {
+      return self.clients.claim();
     })
   );
 });
