@@ -1953,12 +1953,21 @@ function renderAsistLista(){
   document.getElementById('asist-lista').innerHTML=als.map(al=>{
     const s=state.asistTemp[al.id];
     const col=getColor(state.filtroEscuelaAsist);
+    const letraBtns=(window._letras||[]).map((l,idx)=>{
+      const lc=LETRA_COLORS[idx%LETRA_COLORS.length];
+      const sel=s.nota===l.label;
+      return`<button class="letra-btn${sel?' sel-letra':''}"
+        data-lid="${l.label}" data-aid="${al.id}" data-color="${lc}"
+        style="${sel?'background:'+lc+';color:#fff;border-color:transparent':'color:'+lc+';border-color:'+lc}"
+        title="${(l.desc||l.label).replace(/"/g,'&quot;')}"
+        onclick="setLetra(${al.id},'${l.label}',${idx},this)">${l.label}</button>`;
+    }).join('');
     return`<div class="asist-row ${s.estado?'estado-'+s.estado:''}" id="asist-row-${al.id}">
       <div class="avatar" style="background:${col}">${initials(al.nombre)}</div>
       <div class="asist-nombre">${al.nombre}</div>
       <div class="cal-bloque">
         <span class="cal-bloque-titulo">Calificación</span>
-        <div class="letra-btns" id="letra-btns-${al.id}"></div>
+        <div class="letra-btns">${letraBtns}</div>
       </div>
       <div class="asist-btns">
         <button class="asist-btn ${s.estado==='P'?'selected-P':''}" onclick="setAsist(${al.id},'P')" title="Presente">✓</button>
@@ -1967,7 +1976,6 @@ function renderAsistLista(){
       </div>
     </div>`;
   }).join('');
-  if(typeof renderLetrasEnAsistencia==='function') renderLetrasEnAsistencia();
 }
 function setNota(alumnoId,val){state.asistTemp[alumnoId].nota=val!==''?parseFloat(val):null;}
 function setAsist(alumnoId,estado){
@@ -5787,35 +5795,31 @@ function getLetraStyle(label) {
   return { bg: LETRA_COLORS[idx % LETRA_COLORS.length], color: idx === 2 ? '#1a1a2e' : 'white' };
 }
 
-function renderLetrasEnAsistencia() {
-  document.querySelectorAll('.asist-row').forEach(fila => {
-    const alumnoId = parseInt(fila.id.replace('asist-row-', ''));
-    if (!alumnoId) return;
-    const contenedor = document.getElementById('letra-btns-' + alumnoId);
-    if (!contenedor) return;
-    const actual = window.state?.asistTemp?.[alumnoId]?.nota ?? null;
-    contenedor.innerHTML = window._letras.map((l, i) => {
-      const sel = actual === l.label;
-      const color = LETRA_COLORS[i % LETRA_COLORS.length];
-      const textCol = i === 2 ? '#1a1a2e' : 'white';
-      const style = sel
-        ? `background:${color};border-color:${color};color:${textCol};transform:scale(1.08);`
-        : '';
-      return `<button class="letra-btn${sel ? ' sel-letra' : ''}" style="${style}"
-        title="${(l.desc||l.label).replace(/"/g,'&quot;')}"
-        onclick="window.setLetra(${alumnoId},'${l.label.replace(/'/g,"\'")}',${i})">${l.label}</button>`;
-    }).join('');
+
+function setLetra(alumnoId, letraId, idx, btn) {
+  if (!state.asistTemp) state.asistTemp = {};
+  if (!state.asistTemp[alumnoId]) state.asistTemp[alumnoId] = {estado:null, nota:null};
+  var prev = state.asistTemp[alumnoId].nota;
+  var nueva = (prev === letraId) ? null : letraId;
+  state.asistTemp[alumnoId].nota = nueva;
+  // Actualizar estilos directamente en el DOM — sin re-render
+  var item = document.getElementById('asist-row-' + alumnoId);
+  if (!item) return;
+  item.querySelectorAll('.letra-btn').forEach(function(b) {
+    var col = b.getAttribute('data-color');
+    if (b.getAttribute('data-lid') === nueva) {
+      b.classList.add('sel-letra');
+      b.style.background = col;
+      b.style.color = '#fff';
+      b.style.borderColor = 'transparent';
+    } else {
+      b.classList.remove('sel-letra');
+      b.style.background = 'transparent';
+      b.style.color = col;
+      b.style.borderColor = col;
+    }
   });
 }
-
-window.setLetra = function(alumnoId, letra, idx) {
-  if (!window.state) return;
-  if (!window.state.asistTemp) window.state.asistTemp = {};
-  if (!window.state.asistTemp[alumnoId]) window.state.asistTemp[alumnoId] = {estado:null, nota:null};
-  const temp = window.state.asistTemp[alumnoId];
-  temp.nota = temp.nota === letra ? null : letra;
-  renderLetrasEnAsistencia();
-};
 
 function renderLetrasPanel() {
   const list = document.getElementById('letras-config-list');
@@ -5844,7 +5848,6 @@ window._letraCambio = function(i, valor) {
   window._letras[i].id = window._letras[i].label;
   guardarLetras();
   renderLetrasPanel();
-  renderLetrasEnAsistencia();
 };
 window._letraDescCambio = function(i, valor) {
   window._letras[i].desc = valor;
@@ -5856,14 +5859,12 @@ window._letraEliminar = function(i) {
   window._letras.splice(i, 1);
   guardarLetras();
   renderLetrasPanel();
-  renderLetrasEnAsistencia();
 };
 window._letraAgregar = function() {
   if (window._letras.length >= 8) return;
   window._letras.push({id:'D', label:'D', desc:''});
   guardarLetras();
   renderLetrasPanel();
-  renderLetrasEnAsistencia();
 };
 
 function inyectarConfigLetras() {
