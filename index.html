@@ -930,6 +930,16 @@
   .leyenda-global-desc:focus{outline:2px solid var(--gold);background:white;}
   .leyenda-global-hint{font-size:.68rem;color:var(--muted);margin-top:.1rem;font-style:italic;}
 
+  /* ══ COLORES POR LETRA ══ */
+  .sel-letra-0{background:#4a7c59 !important;border-color:#4a7c59 !important;color:white !important;transform:scale(1.08);}
+  .sel-letra-1{background:#2980b9 !important;border-color:#2980b9 !important;color:white !important;transform:scale(1.08);}
+  .sel-letra-2{background:#d4a017 !important;border-color:#d4a017 !important;color:#1a1a2e !important;transform:scale(1.08);}
+  .sel-letra-3{background:#8a8070 !important;border-color:#8a8070 !important;color:white !important;transform:scale(1.08);}
+  .sel-letra-4{background:#c0392b !important;border-color:#c0392b !important;color:white !important;transform:scale(1.08);}
+  .sel-letra-5{background:#8e44ad !important;border-color:#8e44ad !important;color:white !important;transform:scale(1.08);}
+  .sel-letra-6{background:#e67e22 !important;border-color:#e67e22 !important;color:white !important;transform:scale(1.08);}
+  .sel-letra-7{background:#1a7a8a !important;border-color:#1a7a8a !important;color:white !important;transform:scale(1.08);}
+
 </style>
 </head>
 <body>
@@ -1521,6 +1531,28 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Letras de calificación (inicialización temprana) ──
+const LS_LETRAS = 'pd_letras_v1';
+const LETRAS_DEFAULT = [
+  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
+  { id: 'B', label: 'B', desc: 'Bueno' },
+  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
+  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
+];
+const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
+function cargarLetras() {
+  try {
+    const raw = localStorage.getItem(LS_LETRAS);
+    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
+    const saved = JSON.parse(raw);
+    return saved.map((l, i) => Object.assign({}, LETRAS_DEFAULT[i] || {}, l, {desc: l.desc != null ? l.desc : (LETRAS_DEFAULT[i]?.desc || '')}));
+  } catch(e) { return LETRAS_DEFAULT.map(l => ({...l})); }
+}
+function guardarLetras() {
+  localStorage.setItem(LS_LETRAS, JSON.stringify(window._letras));
+}
+window._letras = cargarLetras();
+
 // ══════════════════════
 // ESTADO
 // ══════════════════════
@@ -1924,11 +1956,9 @@ function renderAsistLista(){
     return`<div class="asist-row ${s.estado?'estado-'+s.estado:''}" id="asist-row-${al.id}">
       <div class="avatar" style="background:${col}">${initials(al.nombre)}</div>
       <div class="asist-nombre">${al.nombre}</div>
-      <div style="text-align:center;">
-        <input class="nota-inline" type="number" min="1" max="10" step="0.5"
-          value="${s.nota??''}" placeholder="—"
-          onchange="setNota(${al.id},this.value)" title="Nota de clase">
-        <span class="nota-inline-label">Nota clase</span>
+      <div class="cal-bloque">
+        <span class="cal-bloque-titulo">Calificación</span>
+        <div class="letra-btns" id="letra-btns-${al.id}"></div>
       </div>
       <div class="asist-btns">
         <button class="asist-btn ${s.estado==='P'?'selected-P':''}" onclick="setAsist(${al.id},'P')" title="Presente">✓</button>
@@ -1937,6 +1967,7 @@ function renderAsistLista(){
       </div>
     </div>`;
   }).join('');
+  if(typeof renderLetrasEnAsistencia==='function') renderLetrasEnAsistencia();
 }
 function setNota(alumnoId,val){state.asistTemp[alumnoId].nota=val!==''?parseFloat(val):null;}
 function setAsist(alumnoId,estado){
@@ -2376,20 +2407,28 @@ function getSegLatest(alumnoId,materiaId){
 }
 
 function renderFiltroSeg(){
-  document.getElementById('filtro-seg-pills').innerHTML=
+  // Seguimiento ahora usa los filtros de asistencia (tab unificada)
+  var el = document.getElementById('filtro-seg-pills');
+  if(!el) return;
+  el.innerHTML=
     state.escuelas.map(e=>`<div class="school-pill ${getCC(e.id)} ${state.filtroEscuelaSeg===e.id?'active':''}" onclick="setFiltroSeg(${e.id})"><span class="dot"></span>${e.nombre}</div>`).join('');
 }
 function setFiltroSeg(id){
   state.filtroEscuelaSeg=id;renderFiltroSeg();
+  const segCurso = document.getElementById('seg-curso');
+  if(!segCurso) return;
   const cs=state.cursos.filter(c=>c.escuelaId===id);
-  document.getElementById('seg-curso').innerHTML=cs.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('')||'<option disabled>Sin cursos</option>';
+  segCurso.innerHTML=cs.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('')||'<option disabled>Sin cursos</option>';
   updateMateriasSeg();
   renderSeguimiento();
 }
 function updateMateriasSeg(){
-  const cursoId=parseInt(document.getElementById('seg-curso').value);
+  const segCurso = document.getElementById('seg-curso');
+  const segMateria = document.getElementById('seg-materia');
+  if(!segCurso || !segMateria) return;
+  const cursoId=parseInt(segCurso.value);
   const mats=cursoId?getMateriasDelCurso(cursoId):[];
-  document.getElementById('seg-materia').innerHTML=mats.map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('')||'<option disabled>Sin materias</option>';
+  segMateria.innerHTML=mats.map(m=>`<option value="${m.id}">${m.nombre}</option>`).join('')||'<option disabled>Sin materias</option>';
 }
 
 function segEstadoClass(v){
@@ -3239,7 +3278,6 @@ function renderAll(){
   if(!activeTab)return;
   const id=activeTab.id.replace('tab-','');
   if(id==='historial')renderHistorial();
-  else if(id==='seguimiento')renderSeguimiento();
   else if(id==='horario')renderHorario();
   else if(id==='trayectoria')renderTrayLista();
   else if(id==='mapa')mapaCargar();
@@ -5240,3248 +5278,851 @@ setTimeout(function() {
 
 })();
 
-<script>
+
+
+/* ══ SINCRONIZACIÓN ASISTENCIA ↔ SEGUIMIENTO ══ */
+(function(){
+
 /* ══════════════════════════════════════════════════════════════
-   CALIFICACIÓN POR LETRAS - VERSIÓN FINAL FUNCIONAL
+   PARCHE: sincronización Asistencia ↔ Seguimiento
    ══════════════════════════════════════════════════════════════ */
 
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Aprobado con distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No aplica / No evaluado' },
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) {
-    return LETRAS_DEFAULT.map(l => ({...l}));
-  }
-<script>
-/* ══════════════════════════════════════════════════════════════
-   CALIFICACIÓN POR LETRAS - VERSIÓN ROBUSTA (FINAL)
-   ══════════════════════════════════════════════════════════════ */
-
-const LS_LETRAS = 'pd_letras_v1';
-
-const LETRAS_DEFAULT = [
-  { id: 'A', label: 'A', desc: 'Excelente / Distinción' },
-  { id: 'B', label: 'B', desc: 'Bueno' },
-  { id: 'C', label: 'C', desc: 'Regular / En proceso' },
-  { id: 'NA', label: 'NA', desc: 'No evaluado' }
-];
-
-const LETRA_COLORS = ['#4a7c59','#2980b9','#d4a017','#8a8070','#c0392b','#8e44ad','#e67e22','#1a7a8a'];
-
-function cargarLetras() {
-  try {
-    const raw = localStorage.getItem(LS_LETRAS);
-    if (!raw) return LETRAS_DEFAULT.map(l => ({...l}));
-    const saved = JSON.parse(raw);
-    return saved.map((l,i) => Object.assign({}, LETRAS_DEFAULT[i]||{}, l));
-  } catch(e) { return LETRAS_DEFAULT.map(l => ({...l})); }
+/* ── Helpers ───────────────────────────────────────────────── */
+
+/**
+ * Dado un cursoId, materiaId y fecha, devuelve el registro de asistencia
+ * del curso completo: { alumnoId: {estado, nota} }
+ */
+function getAsistenciaDia(cursoId, materiaId, fecha) {
+  if (!window.state || !cursoId || !materiaId || !fecha) return {};
+  var key = cursoId + '_' + materiaId + '_' + fecha;
+  return window.state.asistencia[key] || {};
 }
 
-window._letras = cargarLetras();
-
-function guardarLetras() {
-  localStorage.setItem(LS_LETRAS, JSON.stringify(window._letras));
+/**
+ * Devuelve el estado de asistencia de un alumno en un día dado.
+ * Devuelve 'P', 'A', 'T' o null.
+ */
+function estadoAlumnoDia(alumnoId, cursoId, materiaId, fecha) {
+  var reg = getAsistenciaDia(cursoId, materiaId, fecha);
+  var d = reg[alumnoId];
+  if (!d) return null;
+  return typeof d === 'object' ? d.estado : d;
 }
+
+/**
+ * Devuelve el tema guardado para una clave dada.
+ * La clave es la misma que usa asistencia: cursoId_materiaId_fecha
+ */
+function getTemaDelDia(cursoId, materiaId, fecha) {
+  if (!window.state || !cursoId || !materiaId || !fecha) return null;
+  var key = cursoId + '_' + materiaId + '_' + fecha;
+  return window.state.temas && window.state.temas[key] ? window.state.temas[key] : null;
+}
+
+/** Badge de asistencia individual */
+function badgeAsist(estado) {
+  if (!estado) return '<span class="seg-asist-badge sab-N">—</span>';
+  var map = {
+    P: '<span class="seg-asist-badge sab-P">✓ Presente</span>',
+    A: '<span class="seg-asist-badge sab-A">✗ Ausente</span>',
+    T: '<span class="seg-asist-badge sab-T">T Tarde</span>',
+  };
+  return map[estado] || '<span class="seg-asist-badge sab-N">—</span>';
+}
+
+/* ── Barra informativa del día (tema + totales asistencia) ── */
+
+function renderSegDiaBar(cursoId, materiaId, fecha) {
+  // Eliminar barra previa
+  var prev = document.getElementById('seg-dia-bar');
+  if (prev) prev.remove();
+
+  if (!cursoId || !materiaId || !fecha) return;
+
+  var tema = getTemaDelDia(cursoId, materiaId, fecha);
+  var asistDia = getAsistenciaDia(cursoId, materiaId, fecha);
+  var als = window.state ? window.state.alumnos.filter(function(a){ return a.cursoId === cursoId; }) : [];
+
+  var P = 0, A = 0, T = 0;
+  als.forEach(function(al) {
+    var e = estadoAlumnoDia(al.id, cursoId, materiaId, fecha);
+    if (e === 'P') P++;
+    else if (e === 'A') A++;
+    else if (e === 'T') T++;
+  });
+
+  var bar = document.createElement('div');
+  bar.id = 'seg-dia-bar';
+  bar.className = 'seg-dia-bar';
+
+  // Sección del tema
+  var temaHtml = '';
+  if (tema && tema.titulo) {
+    temaHtml =
+      '<div class="sdb-tema">' +
+        '<div class="sdb-titulo">📖 ' + _esc(tema.titulo) + '</div>' +
+        (tema.descripcion ? '<div class="sdb-desc">🎯 ' + _esc(tema.descripcion) + '</div>' : '') +
+      '</div>';
+  } else {
+    temaHtml = '<div class="sdb-tema sdb-nodata">Sin tema registrado para esta fecha</div>';
+  }
+
+  // Sección de totales de asistencia
+  var statsHtml = '';
+  if (als.length && (P || A || T)) {
+    statsHtml =
+      '<div class="sdb-stats">' +
+        (P ? '<span class="sdb-chip sdb-P">✓ ' + P + '</span>' : '') +
+        (A ? '<span class="sdb-chip sdb-A">✗ ' + A + '</span>' : '') +
+        (T ? '<span class="sdb-chip sdb-T">T ' + T + '</span>' : '') +
+        '<span style="font-size:.7rem;color:var(--muted);">/ ' + als.length + '</span>' +
+      '</div>';
+  } else if (als.length) {
+    statsHtml = '<span class="sdb-nodata">Sin asistencia registrada este día</span>';
+  }
+
+  bar.innerHTML = temaHtml + statsHtml;
+
+  // Insertar antes de la lista de seguimiento
+  var segLista = document.getElementById('seg-lista');
+  if (segLista && segLista.parentNode) {
+    segLista.parentNode.insertBefore(bar, segLista);
+  }
+}
+
+function _esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ── Sincronizar campos de tema en Seguimiento desde Asistencia ── */
+
+function sincronizarTemaEnSeg(cursoId, materiaId, fecha) {
+  var tema = getTemaDelDia(cursoId, materiaId, fecha);
+  var inpTitulo = document.getElementById('seg-tema-titulo');
+  var inpDesc   = document.getElementById('seg-tema-desc');
+  if (!inpTitulo || !inpDesc) return;
+
+  if (tema) {
+    inpTitulo.value = tema.titulo    || '';
+    inpDesc.value   = tema.descripcion || '';
+  } else {
+    inpTitulo.value = '';
+    inpDesc.value   = '';
+  }
+}
+
+/* ── Parchear renderSeguimiento para inyectar estado de asistencia ── */
+
+var _renderSegOrig = window.renderSeguimiento;
+if (typeof _renderSegOrig === 'function') {
+  window.renderSeguimiento = function() {
+    _renderSegOrig();
+
+    var cursoId   = parseInt(document.getElementById('seg-curso')  ? document.getElementById('seg-curso').value   : 0);
+    var materiaId = parseInt(document.getElementById('seg-materia') ? document.getElementById('seg-materia').value : 0);
+    var fecha     = document.getElementById('seg-fecha') ? document.getElementById('seg-fecha').value : '';
+
+    // 1. Sincronizar tema
+    sincronizarTemaEnSeg(cursoId, materiaId, fecha);
+
+    // 2. Barra del día
+    renderSegDiaBar(cursoId, materiaId, fecha);
+
+    // 3. Inyectar badge de asistencia en cada fila
+    if (!cursoId || !materiaId || !fecha) return;
+
+    var als = window.state ? window.state.alumnos.filter(function(a){ return a.cursoId === cursoId; }) : [];
+    als.forEach(function(al) {
+      var fila = document.getElementById('seg-row-' + al.id);
+      if (!fila) return;
+
+      // Evitar duplicados
+      var prev = fila.querySelector('.seg-asist-col');
+      if (prev) prev.remove();
+
+      var estado = estadoAlumnoDia(al.id, cursoId, materiaId, fecha);
+
+      // Crear celda de asistencia
+      var col = document.createElement('div');
+      col.className = 'seg-asist-col';
+      col.innerHTML = badgeAsist(estado);
+
+      // Insertar como primer elemento después del nombre del alumno
+      var alumnoCell = fila.querySelector('.seg-alumno-cell');
+      if (alumnoCell && alumnoCell.nextSibling) {
+        fila.insertBefore(col, alumnoCell.nextSibling);
+      } else if (alumnoCell) {
+        fila.appendChild(col);
+      }
+    });
+  };
+}
+
+/* ── Parchear cargarTemaSeg para leer desde el mismo key que asistencia ── */
+
+window.cargarTemaSeg = function() {
+  var cursoId   = document.getElementById('seg-curso')  ? document.getElementById('seg-curso').value   : null;
+  var materiaId = document.getElementById('seg-materia') ? document.getElementById('seg-materia').value : null;
+  var fecha     = document.getElementById('seg-fecha')   ? document.getElementById('seg-fecha').value   : null;
+  if (!cursoId || !materiaId || !fecha) return;
+
+  // La clave es la misma que usa asistencia
+  var key = cursoId + '_' + materiaId + '_' + fecha;
+  var t = (window.state && window.state.temas && window.state.temas[key]) || {};
+
+  var inpTitulo = document.getElementById('seg-tema-titulo');
+  var inpDesc   = document.getElementById('seg-tema-desc');
+  if (inpTitulo) inpTitulo.value = t.titulo      || '';
+  if (inpDesc)   inpDesc.value   = t.descripcion || '';
+};
+
+/* ── Parchear guardarTemaSegAuto para escribir en la misma clave ── */
+
+var _temaSegTimerPatch = null;
+window.guardarTemaSegAuto = function() {
+  clearTimeout(_temaSegTimerPatch);
+  _temaSegTimerPatch = setTimeout(function() {
+    var cursoId   = document.getElementById('seg-curso')  ? document.getElementById('seg-curso').value   : null;
+    var materiaId = document.getElementById('seg-materia') ? document.getElementById('seg-materia').value : null;
+    var fecha     = document.getElementById('seg-fecha')   ? document.getElementById('seg-fecha').value   : null;
+    if (!cursoId || !materiaId || !fecha) return;
+
+    // Misma clave que asistencia
+    var key = cursoId + '_' + materiaId + '_' + fecha;
+    if (!window.state.temas) window.state.temas = {};
+    if (!window.state.temas[key]) window.state.temas[key] = {};
+    window.state.temas[key].titulo      = (document.getElementById('seg-tema-titulo') || {}).value || '';
+    window.state.temas[key].descripcion = (document.getElementById('seg-tema-desc')   || {}).value || '';
+
+    if (typeof saveLS === 'function') saveLS();
+
+    // Si asistencia está mostrando la misma fecha/curso/materia, sincronizar
+    var asistFecha    = document.getElementById('asist-fecha')   ? document.getElementById('asist-fecha').value   : null;
+    var asistCurso    = document.getElementById('asist-curso')   ? document.getElementById('asist-curso').value   : null;
+    var asistMateria  = document.getElementById('asist-materia') ? document.getElementById('asist-materia').value : null;
+    if (asistFecha === fecha && String(asistCurso) === String(cursoId) && String(asistMateria) === String(materiaId)) {
+      var ti = document.getElementById('asist-tema-titulo');
+      var td = document.getElementById('asist-tema-desc');
+      if (ti) ti.value = window.state.temas[key].titulo;
+      if (td) td.value = window.state.temas[key].descripcion;
+    }
+  }, 600);
+};
+
+/* ── Parchear guardarTemaAuto (en asistencia) para también reflejar en seg ── */
+
+var _temaAsistTimerPatch = null;
+var _guardarTemaAutoOrig = window.guardarTemaAuto;
+window.guardarTemaAuto = function() {
+  // Ejecutar el original
+  if (typeof _guardarTemaAutoOrig === 'function') _guardarTemaAutoOrig();
+
+  // Adicionalmente: si seguimiento muestra la misma fecha/curso/materia, sincronizar
+  clearTimeout(_temaAsistTimerPatch);
+  _temaAsistTimerPatch = setTimeout(function() {
+    var asistFecha   = document.getElementById('asist-fecha')   ? document.getElementById('asist-fecha').value   : null;
+    var asistCurso   = document.getElementById('asist-curso')   ? document.getElementById('asist-curso').value   : null;
+    var asistMateria = document.getElementById('asist-materia') ? document.getElementById('asist-materia').value : null;
+
+    var segFecha   = document.getElementById('seg-fecha')   ? document.getElementById('seg-fecha').value   : null;
+    var segCurso   = document.getElementById('seg-curso')   ? document.getElementById('seg-curso').value   : null;
+    var segMateria = document.getElementById('seg-materia') ? document.getElementById('seg-materia').value : null;
+
+    if (asistFecha && asistFecha === segFecha &&
+        String(asistCurso) === String(segCurso) &&
+        String(asistMateria) === String(segMateria)) {
+      var key = asistCurso + '_' + asistMateria + '_' + asistFecha;
+      var t = (window.state && window.state.temas && window.state.temas[key]) || {};
+      var ti = document.getElementById('seg-tema-titulo');
+      var td = document.getElementById('seg-tema-desc');
+      if (ti) ti.value = t.titulo || '';
+      if (td) td.value = t.descripcion || '';
+    }
+  }, 700);
+};
+
+/* ── Parchear cambios de fecha/curso/materia en seguimiento ── */
+// Cuando cambia la fecha en seguimiento, re-cargar tema y barra del día
+
+window.patchearSelectsSeg = function patchearSelectsSeg() {
+  var selFecha   = document.getElementById('seg-fecha');
+  var selCurso   = document.getElementById('seg-curso');
+  var selMateria = document.getElementById('seg-materia');
+
+  function onCambio() {
+    setTimeout(function() {
+      var cid = parseInt(selCurso   ? selCurso.value   : 0);
+      var mid = parseInt(selMateria ? selMateria.value : 0);
+      var f   = selFecha ? selFecha.value : '';
+      sincronizarTemaEnSeg(cid, mid, f);
+      renderSegDiaBar(cid, mid, f);
+    }, 100);
+  }
+
+  if (selFecha   && !selFecha._patchAsist)   { selFecha.addEventListener('change',   onCambio); selFecha._patchAsist   = true; }
+  if (selCurso   && !selCurso._patchAsist)   { selCurso.addEventListener('change',   onCambio); selCurso._patchAsist   = true; }
+  if (selMateria && !selMateria._patchAsist) { selMateria.addEventListener('change', onCambio); selMateria._patchAsist = true; }
+};
+
+/* ── Parchear goTab / bnavGo para inicializar al entrar a seguimiento ── */
+
+/* Inicializar si seguimiento ya está activo */
+setTimeout(function() {
+  var tabSeg = document.getElementById('tab-asistencia');
+  if (tabSeg && tabSeg.classList.contains('active')) {
+    patchearSelectsSeg();
+  }
+}, 300);
+
+console.log('✅ ProfeDesk: asistencia + tema sincronizados en seguimiento');
+
+})();
+
+// ══════════════════════════════════════════════════════
+// CLASE DEL DÍA — lógica unificada
+// ══════════════════════════════════════════════════════
+
+// Sub-vista activa: 'asist' | 'seg' | 'ambas'
+let _claseSubVista = 'asist';
+
+function claseSubVista(vista) {
+  _claseSubVista = vista;
+  ['asist','seg','ambas'].forEach(v => {
+    document.getElementById('clase-btn-'+v).classList.toggle('active', v===vista);
+    document.getElementById('clase-panel-'+v).classList.toggle('active', v===vista);
+  });
+  if(vista === 'seg' || vista === 'ambas') {
+    sincronizarHiddenSeg();
+    renderSeguimiento();
+    if(typeof window.renderIndConfigPanel==='function') setTimeout(window.renderIndConfigPanel, 40);
+  }
+  if(vista === 'ambas') renderVistaCombinada();
+  if(vista === 'asist') renderAsistLista();
+}
+
+// Sincroniza los <input hidden> de seguimiento con los valores de asistencia
+function sincronizarHiddenSeg() {
+  const fecha    = document.getElementById('asist-fecha')?.value   || '';
+  const cursoId  = document.getElementById('asist-curso')?.value   || '';
+  const materiaId= document.getElementById('asist-materia')?.value || '';
+  const titulo   = document.getElementById('asist-tema-titulo')?.value || '';
+  const desc     = document.getElementById('asist-tema-desc')?.value   || '';
+  ['seg-fecha','seg-curso','seg-materia','seg-tema-titulo','seg-tema-desc'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(id==='seg-fecha')    el.value = fecha;
+    if(id==='seg-curso')    el.value = cursoId;
+    if(id==='seg-materia')  el.value = materiaId;
+    if(id==='seg-tema-titulo') el.value = titulo;
+    if(id==='seg-tema-desc')   el.value = desc;
+  });
+  // También sincronizar filtroEscuelaSeg con filtroEscuelaAsist
+  if(state.filtroEscuelaAsist) state.filtroEscuelaSeg = state.filtroEscuelaAsist;
+}
+
+// Disparado cuando cambia fecha / curso / materia en la barra compartida
+function claseOnFiltroChange() {
+  renderAsistLista();
+  cargarTema();
+  sincronizarHiddenSeg();
+  if(_claseSubVista === 'seg')   renderSeguimiento();
+  if(_claseSubVista === 'ambas') renderVistaCombinada();
+}
+function claseOnCursoChange() {
+  updateMateriasAsist();
+  claseOnFiltroChange();
+}
+function claseOnMateriaChange() {
+  claseOnFiltroChange();
+  cargarTemaSeg();
+}
+
+// setFiltroAsist ahora también sincroniza seguimiento
+const _setFiltroAsistOrig = window.setFiltroAsist;
+window.setFiltroAsist = function(id) {
+  _setFiltroAsistOrig(id);
+  state.filtroEscuelaSeg = id;
+  sincronizarHiddenSeg();
+  if(_claseSubVista === 'seg')   renderSeguimiento();
+  if(_claseSubVista === 'ambas') renderVistaCombinada();
+};
+
+// Vista combinada: una fila por alumno con asistencia + seguimiento
+function renderVistaCombinada() {
+  var wrap  = document.getElementById('ambas-lista');
+  var empty = document.getElementById('ambas-empty');
+  if(!wrap) return;
+  var cursoId   = parseInt(document.getElementById('asist-curso') ? document.getElementById('asist-curso').value : 0);
+  var materiaId = parseInt(document.getElementById('asist-materia') ? document.getElementById('asist-materia').value : 0);
+  var fecha     = document.getElementById('asist-fecha') ? document.getElementById('asist-fecha').value : '';
+  if(!state.filtroEscuelaAsist || !cursoId || !materiaId || !fecha) {
+    wrap.innerHTML = '';
+    if(empty) empty.style.display = 'block';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+  var als       = state.alumnos.filter(function(a){ return a.cursoId === cursoId; });
+  var key       = cursoId+'_'+materiaId+'_'+fecha;
+  var asistData = state.asistencia[key] || {};
+  var col       = getColor(state.filtroEscuelaAsist);
+
+  function indBtn(alumnoId, seg, ind, val, emoji) {
+    var sel    = seg[ind] === val;
+    var colMap = {ok:'var(--sage)', ep:'#9a7000', no:'var(--accent)'};
+    var c      = colMap[val];
+    return '<button onclick="cycleInd('+alumnoId+',\''+ind+'\',\''+val+'\');renderVistaCombinada()"'+
+      ' style="width:26px;height:26px;border-radius:5px;border:1.5px solid '+(sel?c:'var(--border)')+';'+
+      'background:'+(sel?c+'22':'white')+';cursor:pointer;font-size:.72rem;font-weight:700;'+
+      'color:'+(sel?c:'var(--muted)')+'">'+emoji+'</button>';
+  }
+
+  var tbody = als.map(function(al) {
+    var at  = state.asistTemp[al.id] || asistData[al.id] || {};
+    var seg = getSeg(al.id, materiaId, fecha);
+    var est = at.estado || null;
+    function aBtn(e, label) {
+      var sel = est === e;
+      var cls = sel ? 'asist-btn selected-'+e : 'asist-btn';
+      return '<button class="'+cls+'" onclick="setAsist('+al.id+',\''+e+'\');renderVistaCombinada()"'+
+             ' style="width:28px;height:28px;font-size:.72rem;" title="'+label+'">'+
+             (e==='P'?'✓':e==='A'?'✗':'T')+'</button>';
+    }
+    return '<tr style="border-bottom:1px solid var(--border);" id="ambas-row-'+al.id+'">'+
+      '<td style="padding:.5rem .8rem;">'+
+        '<div style="display:flex;align-items:center;gap:.5rem;">'+
+          '<div class="avatar" style="background:'+col+';width:26px;height:26px;font-size:.58rem;">'+initials(al.nombre)+'</div>'+
+          '<span style="font-weight:500;font-size:.84rem;">'+al.nombre+'</span>'+
+        '</div>'+
+      '</td>'+
+      '<td style="padding:.5rem .4rem;text-align:center;">'+
+        '<div style="display:flex;gap:.2rem;justify-content:center;">'+
+          aBtn('P','Presente')+aBtn('A','Ausente')+aBtn('T','Tarde')+
+        '</div>'+
+      '</td>'+
+      '<td style="padding:.5rem .4rem;text-align:center;font-size:.8rem;font-weight:600;">'+(at.nota!=null?at.nota:'—')+'</td>'+
+      '<td style="padding:.5rem .3rem;text-align:center;" class="hide-mobile">'+
+        '<div style="display:flex;gap:.15rem;justify-content:center;">'+
+          indBtn(al.id,seg,'interpreta','ok','✓')+indBtn(al.id,seg,'interpreta','ep','~')+indBtn(al.id,seg,'interpreta','no','✗')+
+        '</div></td>'+
+      '<td style="padding:.5rem .3rem;text-align:center;" class="hide-mobile">'+
+        '<div style="display:flex;gap:.15rem;justify-content:center;">'+
+          indBtn(al.id,seg,'analiza','ok','✓')+indBtn(al.id,seg,'analiza','ep','~')+indBtn(al.id,seg,'analiza','no','✗')+
+        '</div></td>'+
+      '<td style="padding:.5rem .3rem;text-align:center;" class="hide-mobile">'+
+        '<div style="display:flex;gap:.15rem;justify-content:center;">'+
+          indBtn(al.id,seg,'resuelve','ok','✓')+indBtn(al.id,seg,'resuelve','ep','~')+indBtn(al.id,seg,'resuelve','no','✗')+
+        '</div></td>'+
+      '<td style="padding:.5rem .3rem;text-align:center;" class="hide-mobile">'+
+        '<div style="display:flex;gap:.15rem;justify-content:center;">'+
+          indBtn(al.id,seg,'transmite','ok','✓')+indBtn(al.id,seg,'transmite','ep','~')+indBtn(al.id,seg,'transmite','no','✗')+
+        '</div></td>'+
+      '<td style="padding:.5rem .4rem;text-align:center;">'+segChip(al,materiaId,fecha)+'</td>'+
+    '</tr>';
+  }).join('');
+
+  wrap.innerHTML =
+    '<div class="card" style="padding:0;overflow:hidden;">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:.83rem;">'+
+    '<thead><tr style="border-bottom:2px solid var(--border);">'+
+      '<th style="padding:.5rem .8rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);">Alumno</th>'+
+      '<th style="padding:.5rem .8rem;text-align:center;font-size:.7rem;color:var(--muted);">Asistencia</th>'+
+      '<th style="padding:.5rem .8rem;text-align:center;font-size:.7rem;color:var(--muted);">Calific.</th>'+
+      '<th style="padding:.5rem .8rem;text-align:center;font-size:.7rem;color:var(--muted);" class="hide-mobile">🧠</th>'+
+      '<th style="padding:.5rem .8rem;text-align:center;font-size:.7rem;color:var(--muted);" class="hide-mobile">🔍</th>'+
+      '<th style="padding:.5rem .8rem;text-align:center;font-size:.7rem;color:var(--muted);" class="hide-mobile">⚙️</th>'+
+      '<th style="padding:.5rem .8rem;text-align:center;font-size:.7rem;color:var(--muted);" class="hide-mobile">💬</th>'+
+      '<th style="padding:.5rem .8rem;text-align:center;font-size:.7rem;color:var(--muted);">Resumen</th>'+
+    '</tr></thead>'+
+    '<tbody>'+tbody+'</tbody>'+
+    '</table></div>';
+}
+
+
+// Mobile: botón de seguimiento en bottom nav
+function bnavGoClaseSeg() {
+  bnavGo('asistencia', 3);
+  setTimeout(function(){ claseSubVista('seg'); }, 120);
+}
+
+
+function renderLeyendaLetras() {
+  var bloque = document.getElementById('leyenda-letras-bloque');
+  if (!bloque) return;
+
+  // Solo mostrar si hay alumnos visibles
+  var hayLista = document.getElementById('asist-lista') &&
+                 document.getElementById('asist-lista').children.length > 0;
+  if (!hayLista) { bloque.style.display = 'none'; return; }
+  bloque.style.display = 'block';
+
+  var filas = window._letras.map(function(l, i) {
+    return '<div class="leyenda-global-fila">' +
+      '<span class="leyenda-global-letra">' + l.label + '</span>' +
+      '<span class="leyenda-global-sep">=</span>' +
+      '<input class="leyenda-global-desc"' +
+        ' value="' + (l.desc || '').replace(/"/g, '&quot;') + '"' +
+        ' placeholder="Escribí el significado de esta letra…"' +
+        ' oninput="window._letraDescCambio(' + i + ', this.value)"' +
+        ' onchange="window._letraDescCambio(' + i + ', this.value)">' +
+    '</div>';
+  }).join('');
+
+  bloque.innerHTML =
+    '<div class="leyenda-global-card">' +
+      '<div class="leyenda-global-titulo">🔤 Significado de las letras</div>' +
+      filas +
+      '<div class="leyenda-global-hint">Escribí acá el significado de cada letra — se guarda automáticamente</div>' +
+    '</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// CALIFICACIÓN POR LETRAS — sistema unificado
+// ══════════════════════════════════════════════════════════════
+
 
 function getLetraStyle(label) {
   const idx = window._letras.findIndex(l => l.label === label);
   if (idx === -1) return {bg: '#e0d8c8', color: '#1a1a2e'};
-  const color = LETRA_COLORS[idx];
-  return { bg: color, color: idx === 2 ? '#1a1a2e' : 'white' };
+  return { bg: LETRA_COLORS[idx % LETRA_COLORS.length], color: idx === 2 ? '#1a1a2e' : 'white' };
 }
 
-/* Renderizar botones de letras */
 function renderLetrasEnAsistencia() {
-  document.querySelectorAll('.asist-row').forEach(row => {
-    const idMatch = row.id.match(/asist-row-(\d+)/);
-    if (!idMatch) return;
-    const alumnoId = parseInt(idMatch[1]);
-
-    let container = document.getElementById(`letra-btns-${alumnoId}`);
-    if (!container) {
-      const notaArea = row.querySelector('.nota-inline')?.parentElement || row.querySelector('.asist-btns')?.parentElement;
-      if (notaArea) {
-        notaArea.innerHTML = `
-          <div class="cal-bloque">
-            <span class="cal-bloque-titulo">Calificación</span>
-            <div class="letra-btns" id="letra-btns-${alumnoId}"></div>
-          </div>`;
-        container = document.getElementById(`letra-btns-${alumnoId}`);
-      }
-    }
-    if (!container) return;
-
-    const currentNota = window.state?.asistTemp?.[alumnoId]?.nota || null;
-
-    container.innerHTML = window._letras.map((letra, i) => {
-      const isSelected = currentNota === letra.label;
-      const style = isSelected ? getLetraStyle(letra.label) : {};
-      return `
-        <button class="letra-btn ${isSelected ? 'sel-letra' : ''}" 
-                style="${isSelected ? `background:${style.bg}; border-color:${style.bg}; color:${style.color};` : ''}"
-                onclick="window.setLetra(${alumnoId}, '${letra.label}', ${i})"
-                title="${letra.desc || letra.label}">
-          ${letra.label}
-        </button>`;
+  document.querySelectorAll('.asist-row').forEach(fila => {
+    const alumnoId = parseInt(fila.id.replace('asist-row-', ''));
+    if (!alumnoId) return;
+    const contenedor = document.getElementById('letra-btns-' + alumnoId);
+    if (!contenedor) return;
+    const actual = window.state?.asistTemp?.[alumnoId]?.nota ?? null;
+    contenedor.innerHTML = window._letras.map((l, i) => {
+      const sel = actual === l.label;
+      const color = LETRA_COLORS[i % LETRA_COLORS.length];
+      const textCol = i === 2 ? '#1a1a2e' : 'white';
+      const style = sel
+        ? `background:${color};border-color:${color};color:${textCol};transform:scale(1.08);`
+        : '';
+      return `<button class="letra-btn${sel ? ' sel-letra' : ''}" style="${style}"
+        title="${(l.desc||l.label).replace(/"/g,'&quot;')}"
+        onclick="window.setLetra(${alumnoId},'${l.label.replace(/'/g,"\'")}',${i})">${l.label}</button>`;
     }).join('');
   });
 }
 
 window.setLetra = function(alumnoId, letra, idx) {
-  if (!window.state?.asistTemp?.[alumnoId]) return;
+  if (!window.state) return;
+  if (!window.state.asistTemp) window.state.asistTemp = {};
+  if (!window.state.asistTemp[alumnoId]) window.state.asistTemp[alumnoId] = {estado:null, nota:null};
   const temp = window.state.asistTemp[alumnoId];
   temp.nota = temp.nota === letra ? null : letra;
   renderLetrasEnAsistencia();
-  if (typeof saveLS === "function") saveLS();
 };
 
-/* Configuración */
 function renderLetrasPanel() {
-  const container = document.getElementById('letras-config-list');
-  if (!container) return;
-  container.innerHTML = window._letras.map((l, i) => {
+  const list = document.getElementById('letras-config-list');
+  if (!list) return;
+  list.innerHTML = window._letras.map((l, i) => {
     const color = LETRA_COLORS[i % LETRA_COLORS.length];
-    return `
-      <div class="letra-fila">
-        <div style="display:flex;align-items:center;gap:.4rem;">
-          <span style="background:${color};width:14px;height:14px;border-radius:50%;"></span>
-          <input class="letra-fila-label" maxlength="5" value="${l.label}" oninput="window._letraCambio(${i},this.value)">
-        </div>
-        <textarea class="letra-fila-desc" rows="2" oninput="window._letraDescCambio(${i},this.value)">${l.desc||''}</textarea>
-        <button class="btn-del-letra2" onclick="window._letraEliminar(${i})">✕</button>
-      </div>`;
+    return `<div class="letra-fila">
+      <div style="display:flex;align-items:center;gap:.4rem;">
+        <span style="width:14px;height:14px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block;"></span>
+        <input class="letra-fila-label" maxlength="5" value="${l.label.replace(/"/g,'&quot;')}"
+               oninput="window._letraCambio(${i}, this.value)">
+      </div>
+      <div class="letra-fila-inner">
+        <textarea class="letra-fila-desc" rows="2"
+                  placeholder="¿Qué significa esta letra?"
+                  oninput="window._letraDescCambio(${i}, this.value)">${(l.desc||'').replace(/</g,'&lt;')}</textarea>
+      </div>
+      <button class="btn-del-letra2" onclick="window._letraEliminar(${i})">✕</button>
+    </div>`;
   }).join('');
+  renderLeyendaLetras();
 }
 
-window._letraCambio = function(i, val) {
-  window._letras[i].label = val.toUpperCase().trim() || '?';
+window._letraCambio = function(i, valor) {
+  window._letras[i].label = valor.toUpperCase().trim() || '?';
+  window._letras[i].id = window._letras[i].label;
   guardarLetras();
   renderLetrasPanel();
   renderLetrasEnAsistencia();
 };
-window._letraDescCambio = function(i, val) {
-  window._letras[i].desc = val;
+window._letraDescCambio = function(i, valor) {
+  window._letras[i].desc = valor;
   guardarLetras();
+  renderLeyendaLetras();
 };
 window._letraEliminar = function(i) {
   if (window._letras.length <= 1) return;
-  window._letras.splice(i,1);
+  window._letras.splice(i, 1);
   guardarLetras();
   renderLetrasPanel();
   renderLetrasEnAsistencia();
 };
 window._letraAgregar = function() {
   if (window._letras.length >= 8) return;
-  window._letras.push({id: "D", label: "D", desc: ""});
+  window._letras.push({id:'D', label:'D', desc:''});
   guardarLetras();
   renderLetrasPanel();
   renderLetrasEnAsistencia();
 };
 
-/* Inicializar */
-setTimeout(() => {
+function inyectarConfigLetras() {
   renderLetrasPanel();
-  const observer = new MutationObserver(() => {
-    if (document.querySelector('.asist-row')) renderLetrasEnAsistencia();
-  });
-  const lista = document.getElementById('asist-lista');
-  if (lista) observer.observe(lista, {childList: true, subtree: true});
-}, 800);
+  if (typeof window.renderIndConfigPanel === 'function') window.renderIndConfigPanel();
+}
 
-console.log('✅ Letras con colores cargadas correctamente');
-  </script>
+
+</script>
+
+<!-- MODAL CONFIGURACIÓN DRIVE -->
+<div class="modal-bg" id="modal-drive-setup">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-title">☁️ Configurar Google Drive</div>
+    <div style="font-size:.84rem;color:var(--muted);margin-bottom:1.2rem;">Conectá ProfeDesk con tu Google Drive para guardar y restaurar datos automáticamente desde cualquier dispositivo. Es gratis y tarda 5 minutos.</div>
+
+    <div class="setup-step">
+      <div class="setup-num">1</div>
+      <div class="setup-text">
+        <strong>Abrí Google Cloud Console</strong>
+        Entrá a <a href="https://console.cloud.google.com" target="_blank" style="color:var(--sage);">console.cloud.google.com</a> → "Nuevo proyecto" → Nombre: <em>ProfeDesk</em> → Crear
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="setup-num">2</div>
+      <div class="setup-text">
+        <strong>Habilitá Google Drive API</strong>
+        Menú → APIs y servicios → Biblioteca → Buscá "Google Drive API" → Habilitar
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="setup-num">3</div>
+      <div class="setup-text">
+        <strong>Creá credenciales OAuth</strong>
+        APIs y servicios → Credenciales → + Crear credenciales → ID de cliente OAuth → Aplicación web
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="setup-num">4</div>
+      <div class="setup-text">
+        <strong>Agregá el origen autorizado</strong>
+        En "Orígenes autorizados de JavaScript" agregá exactamente:
+        <code id="drive-origin-display" style="background:var(--paper);padding:.15rem .5rem;border-radius:4px;font-size:.8rem;display:block;margin-top:.3rem;word-break:break-all;"></code>
+        <button onclick="copiarOrigen()" style="margin-top:.4rem;background:none;border:1px solid var(--border);border-radius:5px;padding:.2rem .6rem;font-size:.72rem;cursor:pointer;">📋 Copiar URL</button>
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="setup-num">5</div>
+      <div class="setup-text">
+        <strong>Pegá tu Client ID acá abajo</strong>
+        Copiá el ID que termina en <em>.apps.googleusercontent.com</em>
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;">
+      <label>Tu Client ID</label>
+      <input id="drive-client-id-input" placeholder="123456789-abc123.apps.googleusercontent.com" style="font-size:.8rem;">
+      <div style="font-size:.72rem;color:var(--muted);margin-top:.3rem;">Se guarda solo en este dispositivo (localStorage). Nunca se envía a ningún servidor.</div>
+    </div>
+
+    <div class="form-actions" style="flex-wrap:wrap;gap:.5rem;">
+      <button class="btn btn-ghost" onclick="closeModal('drive-setup')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-clear-drive" onclick="clearClientId()" style="display:none;">🗑️ Desconectar</button>
+      <button class="btn btn-primary" onclick="saveClientId()">💾 Guardar y conectar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CLASE HORARIO -->
+<div class="modal-bg" id="modal-clase">
+  <div class="modal">
+    <div class="modal-title" id="modal-clase-title">Nueva clase</div>
+    <input type="hidden" id="edit-clase-id">
+    <input type="hidden" id="edit-clase-dia">
+    <input type="hidden" id="edit-clase-turno">
+    <div class="form-row"><label>Nombre / Materia</label><input id="clase-nombre" placeholder="Ej: Economía 3°B"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Escuela</label><select id="clase-escuela"></select></div>
+      <div class="form-row"><label>Curso</label><select id="clase-curso-h"></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Día</label>
+        <select id="clase-dia">
+          <option value="0">Lunes</option><option value="1">Martes</option>
+          <option value="2">Miércoles</option><option value="3">Jueves</option><option value="4">Viernes</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Turno</label>
+        <select id="clase-turno">
+          <option value="manana">🌅 Mañana</option>
+          <option value="tarde">☀️ Tarde</option>
+          <option value="noche">🌙 Noche</option>
+        </select>
+      </div>
+    </div>
+    <div class="time-row">
+      <div class="form-row"><label>Hora inicio</label><input type="time" id="clase-inicio"></div>
+      <div class="form-row"><label>Hora fin</label><input type="time" id="clase-fin"></div>
+    </div>
+    <div class="form-row"><label>Color</label>
+      <select id="clase-color">
+        <option value="sage">🟢 Verde (Escuela San Martín)</option>
+        <option value="accent">🔴 Rojo (Instituto Belgrano)</option>
+        <option value="gold">🟡 Amarillo (Colegio del Norte)</option>
+        <option value="blue">🔵 Azul</option>
+        <option value="purple">🟣 Violeta</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('clase')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-delete-clase" style="display:none;" onclick="deleteClaseActual()">🗑️ Eliminar</button>
+      <button class="btn btn-primary" onclick="saveClase()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL TRAYECTORIA (se abre como overlay desde otras secciones) -->
+<!-- MODAL GESTOR FECHAS SEGUIMIENTO -->
+<div class="modal-bg" id="modal-gestor-seg" onclick="if(event.target===this)closeModal('gestor-seg')">
+  <div class="modal" style="max-width:520px;width:95%;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div style="font-size:1rem;font-weight:700;">🗂️ Fechas registradas en Seguimiento</div>
+      <button class="btn-icon" onclick="closeModal('gestor-seg')">✕</button>
+    </div>
+    <div style="font-size:.82rem;color:var(--muted);margin-bottom:.8rem;">
+      Seleccioná un curso y materia para ver todas las fechas registradas y borrar las que no necesitás.
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem;">
+      <select id="gseg-curso" onchange="gsegUpdateMaterias()" style="flex:1;min-width:120px;"></select>
+      <select id="gseg-materia" onchange="gsegRenderFechas()" style="flex:1;min-width:120px;"></select>
+    </div>
+    <div id="gseg-fechas-lista" style="max-height:380px;overflow-y:auto;"></div>
+  </div>
+</div>
+<div class="tray-overlay" id="tray-overlay" onclick="if(event.target===this)cerrarTrayectoria()">
+  <div class="tray-panel">
+    <div class="tray-header">
+      <div class="tray-avatar" id="tray-avatar"></div>
+      <div>
+        <div class="tray-nombre" id="tray-nombre"></div>
+        <div class="tray-sub" id="tray-sub"></div>
+      </div>
+      <button class="tray-close" onclick="cerrarTrayectoria()">✕ Cerrar</button>
+    </div>
+
+    <div class="tray-tabs">
+      <div class="tray-tab active" onclick="trayTab('resumen',this)">📊 Resumen</div>
+      <div class="tray-tab" onclick="trayTab('ingreso',this)">📋 Ingreso</div>
+      <div class="tray-tab" onclick="trayTab('observaciones',this)">📝 Observaciones</div>
+      <div class="tray-tab" onclick="trayTab('intervenciones',this)">🤝 Intervenciones</div>
+    </div>
+
+    <div class="tray-body">
+
+      <!-- RESUMEN -->
+      <div id="tray-resumen">
+        <div class="tray-stats" id="tray-stats-row"></div>
+        <div id="tray-resumen-notas"></div>
+        <div id="tray-resumen-ing"></div>
+      </div>
+
+      <!-- INGRESO -->
+      <div id="tray-ingreso" style="display:none;">
+        <div class="ing-grid">
+          <div class="ing-field">
+            <div class="ing-label">Situación de ingreso</div>
+            <select id="tray-ing-situacion" onchange="saveTrayField('situacion',this.value)">
+              <option value="">Sin especificar</option>
+              <option value="nuevo">Alumno nuevo</option>
+              <option value="repitente">Repitente</option>
+              <option value="pase">Pase de otra escuela</option>
+              <option value="reincorporado">Reincorporado</option>
+            </select>
+          </div>
+          <div class="ing-field">
+            <div class="ing-label">Año de ingreso</div>
+            <input type="number" id="tray-ing-anio" placeholder="Ej: 2024" min="2000" max="2099" onchange="saveTrayField('anioIngreso',this.value)">
+          </div>
+          <div class="ing-field">
+            <div class="ing-label">Escuela de origen (si es pase)</div>
+            <input type="text" id="tray-ing-origen" placeholder="Nombre de la escuela" onchange="saveTrayField('escuelaOrigen',this.value)">
+          </div>
+          <div class="ing-field">
+            <div class="ing-label">Condición</div>
+            <select id="tray-ing-condicion" onchange="saveTrayField('condicion',this.value)">
+              <option value="">Sin especificar</option>
+              <option value="regular">Regular</option>
+              <option value="libre">Libre</option>
+              <option value="condicional">Condicional</option>
+            </select>
+          </div>
+        </div>
+        <div class="ing-field" style="margin-top:.3rem;">
+          <div class="ing-label">Necesidades educativas / contexto familiar</div>
+          <textarea id="tray-ing-contexto" rows="3" placeholder="Ej: Trabaja, tiene hijos, vive lejos, NEE diagnosticada..." onchange="saveTrayField('contexto',this.value)"></textarea>
+        </div>
+      </div>
+
+      <!-- OBSERVACIONES -->
+      <div id="tray-observaciones" style="display:none;">
+        <div class="ing-label" style="margin-bottom:.4rem;">Observaciones generales del alumno</div>
+        <textarea id="tray-obs-texto" rows="7" placeholder="Escribí acá todo lo que quieras recordar sobre este alumno: actitud en clase, vínculos, evolución, logros, dificultades..." style="width:100%;resize:vertical;" onchange="saveTrayField('observaciones',this.value)"></textarea>
+        <div class="obs-hint">Se guarda automáticamente al salir del campo.</div>
+
+        <div style="margin-top:1.2rem;">
+          <div class="ing-label" style="margin-bottom:.4rem;">Última actualización</div>
+          <div id="tray-obs-fecha" style="font-size:.8rem;color:var(--muted);">—</div>
+        </div>
+      </div>
+
+      <!-- INTERVENCIONES -->
+      <div id="tray-intervenciones" style="display:none;">
+        <div class="interv-list" id="interv-lista"></div>
+        <button class="btn-add-interv" onclick="abrirModalInterv()">+ Registrar nueva intervención</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INTERVENCIÓN -->
+<div class="modal-bg" id="modal-interv">
+  <div class="modal">
+    <div class="modal-title" id="modal-interv-title">Nueva intervención</div>
+    <input type="hidden" id="edit-interv-id">
+    <div class="form-row">
+      <label>Tipo de intervención</label>
+      <div class="tipo-btns" id="interv-tipo-btns">
+        <button class="tipo-btn sel" data-tipo="reunion" onclick="selTipo(this)">🤝 Reunión con padres</button>
+        <button class="tipo-btn" data-tipo="derivacion" onclick="selTipo(this)">🏥 Derivación</button>
+        <button class="tipo-btn" data-tipo="llamado" onclick="selTipo(this)">📞 Llamado telefónico</button>
+        <button class="tipo-btn" data-tipo="acuerdo" onclick="selTipo(this)">📋 Acuerdo pedagógico</button>
+        <button class="tipo-btn" data-tipo="otro" onclick="selTipo(this)">📌 Otro</button>
+      </div>
+    </div>
+    <div class="form-row"><label>Fecha</label><input type="date" id="interv-fecha"></div>
+    <div class="form-row"><label>Descripción</label><textarea id="interv-desc" rows="3" placeholder="¿Qué se trató? ¿Qué se acordó? ¿Qué resultado tuvo?"></textarea></div>
+    <div class="form-row"><label>Seguimiento / próximo paso</label><input id="interv-seguimiento" placeholder="Ej: Citar nuevamente en 2 semanas"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('interv')">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="btn-del-interv" style="display:none;" onclick="deleteIntervActual()">🗑️</button>
+      <button class="btn btn-primary" onclick="saveInterv()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SINCRONIZACIÓN -->
+<div class="modal-bg" id="modal-sincro">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title">📱 Sincronizar entre dispositivos</div>
+    <div id="modal-sincro-body"></div>
+  </div>
+</div>
+<div class="modal-bg" id="modal-sincro">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title">📱 Sincronizar entre dispositivos</div>
+    <div id="modal-sincro-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
