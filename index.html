@@ -5075,9 +5075,20 @@ function imprimirSeguimientoCompleto() {
     return '<span class="ind-nd">— Sin registro</span>';
   }
 
+  // Peso para cálculo de tendencias
+  const PESO = { ok:3, ep:2, no:1 };
+
+  function esAusente(alumnoId, cursoId, materiaId, fecha) {
+    const key = cursoId + '_' + materiaId + '_' + fecha;
+    const d = (state.asistencia[key] || {})[alumnoId];
+    if (!d) return false;
+    const e = typeof d === 'object' ? d.estado : d;
+    return e === 'A';
+  }
+
   let html = _encabezadoPrint(
     'Informe de seguimiento pedagógico',
-    (escuela ? escuela.nombre : 'Todas las escuelas') + ' · Propósito, indicadores y observaciones por clase'
+    (escuela ? escuela.nombre : 'Todas las escuelas') + ' · Propósito, indicadores, observaciones y síntesis por alumno'
   );
 
   let totalSecciones = 0;
@@ -5103,30 +5114,92 @@ function imprimirSeguimientoCompleto() {
       if (!fechas.length) return;
       totalSecciones++;
 
+      // ─── ENCABEZADO CURSO+MATERIA ───
       html += `<h2>${escCurso ? escCurso.nombre + ' · ' : ''}${curso.nombre} — ${mat.nombre}</h2>`;
 
+      // ─── RESUMEN EJECUTIVO ───
+      // Distribución global de logros
+      let totalIndReg = 0, totOk = 0, totEp = 0, totNo = 0;
+      let alsConDatos = 0;
+      // Por indicador: qué tan logrado está en el curso
+      const porInd = {};
+      INDS.forEach(k => porInd[k] = { ok:0, ep:0, no:0, tot:0 });
+
+      als.forEach(al => {
+        const reg = state.seguimiento[al.id]?.[mat.id];
+        if (!reg) return;
+        let tieneAlgo = false;
+        fechas.forEach(f => {
+          const r = reg[f];
+          if (!r) return;
+          INDS.forEach(k => {
+            if (r[k]) {
+              totalIndReg++;
+              porInd[k].tot++;
+              if (r[k]==='ok') { totOk++; porInd[k].ok++; }
+              else if (r[k]==='ep') { totEp++; porInd[k].ep++; }
+              else if (r[k]==='no') { totNo++; porInd[k].no++; }
+              tieneAlgo = true;
+            }
+          });
+        });
+        if (tieneAlgo) alsConDatos++;
+      });
+
+      const pctOk = totalIndReg ? Math.round(totOk/totalIndReg*100) : 0;
+      const pctEp = totalIndReg ? Math.round(totEp/totalIndReg*100) : 0;
+      const pctNo = totalIndReg ? Math.round(totNo/totalIndReg*100) : 0;
+      const primeraF = fechas[0];
+      const ultimaF = fechas[fechas.length-1];
+
+      // Indicador más fuerte y más débil del curso
+      let indFuerte = null, indDebil = null;
+      INDS.forEach(k => {
+        if (porInd[k].tot < 3) return;
+        const pctOkK = porInd[k].ok / porInd[k].tot;
+        if (!indFuerte || pctOkK > indFuerte.pct) indFuerte = { key:k, pct:pctOkK };
+        if (!indDebil  || pctOkK < indDebil.pct)  indDebil  = { key:k, pct:pctOkK };
+      });
+
+      html += `<div style="background:#f5f0e8;border:1px solid #d4a017;border-radius:6px;padding:8px 10px;margin-bottom:12px;font-size:10px;">
+        <div style="font-weight:700;margin-bottom:4px;color:#7a5800;">📊 Resumen del período</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px;">
+          <span><strong>Rango:</strong> ${fmtFecha(primeraF)} al ${fmtFecha(ultimaF)} · ${fechas.length} clase${fechas.length!==1?'s':''} con registro</span>
+          <span><strong>Alumnos evaluados:</strong> ${alsConDatos} / ${als.length}${als.length-alsConDatos>0?' <span style="color:#8b1e10;">(faltan '+(als.length-alsConDatos)+')</span>':''}</span>
+        </div>
+        <div style="display:flex;gap:4px;height:14px;border-radius:3px;overflow:hidden;margin:4px 0;background:#e0d8c8;">
+          ${pctOk>0?`<div style="flex:${pctOk};background:#4a7c59;color:white;font-size:9px;text-align:center;line-height:14px;">${pctOk>7?pctOk+'% ✓':''}</div>`:''}
+          ${pctEp>0?`<div style="flex:${pctEp};background:#d4a017;color:#1a1a2e;font-size:9px;text-align:center;line-height:14px;">${pctEp>7?pctEp+'% ~':''}</div>`:''}
+          ${pctNo>0?`<div style="flex:${pctNo};background:#c0392b;color:white;font-size:9px;text-align:center;line-height:14px;">${pctNo>7?pctNo+'% ✗':''}</div>`:''}
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:9px;color:#555;">
+          <span><strong style="color:#2d5e38;">✓ ${pctOk}% logrado</strong> (${totOk})</span>
+          <span><strong style="color:#7a5800;">~ ${pctEp}% en proceso</strong> (${totEp})</span>
+          <span><strong style="color:#8b1e10;">✗ ${pctNo}% no logrado</strong> (${totNo})</span>
+          ${indFuerte&&indDebil&&indFuerte.key!==indDebil.key?`<span>· Fortaleza del curso: <strong>${indInfo(indFuerte.key).label}</strong> · Aspecto a reforzar: <strong>${indInfo(indDebil.key).label}</strong></span>`:''}
+        </div>
+      </div>`;
+
+      // ─── BLOQUES POR FECHA (propósito + indicadores + tabla por alumno) ───
       fechas.forEach(f => {
         const key  = `${curso.id}_${mat.id}_${f}`;
         const tema = state.temas[key];
 
-        // Bloque de propósito / saber
         html += `<div style="margin:10px 0 4px;padding:8px 10px;background:#f5f0e8;border-left:3px solid #d4a017;border-radius:0 6px 6px 0;">
           <div style="font-weight:700;font-size:11px;">📅 ${fmtFecha(f)}</div>
           ${tema && tema.titulo
             ? `<div style="font-size:10px;margin-top:2px;"><strong>🎯 Propósito / saber trabajado:</strong> ${tema.titulo}${tema.descripcion ? ' — ' + tema.descripcion : ''}</div>`
-            : `<div style="font-size:10px;margin-top:2px;color:#b45309;"><strong>⚠️ Sin propósito/saber registrado para esta fecha.</strong> Completalo en "Tema de la clase" antes de imprimir.</div>`
+            : `<div style="font-size:10px;margin-top:2px;color:#b45309;"><strong>⚠️ Sin propósito/saber registrado para esta fecha.</strong></div>`
           }
         </div>`;
 
-        // Definición de cada indicador para esta clase
         html += `<div style="font-size:9px;color:#555;margin-bottom:6px;display:flex;gap:14px;flex-wrap:wrap;">`;
         INDS.forEach(k => {
           const info = indInfo(k);
-          html += `<span><strong>${info.emoji} ${info.label}:</strong> ${info.desc ? info.desc : '<em style="color:#999;">(sin descripción configurada — completala en ⚙️ Configuración de la clase)</em>'}</span>`;
+          html += `<span><strong>${info.emoji} ${info.label}:</strong> ${info.desc ? info.desc : '<em style="color:#999;">(sin descripción)</em>'}</span>`;
         });
         html += `</div>`;
 
-        // Tabla por alumno: estado en texto + lo observado ESE día
         html += `<table><thead><tr>
           <th style="min-width:140px;">Alumno</th>
           ${INDS.map(k => { const info = indInfo(k); return `<th style="text-align:center;">${info.emoji}<br>${info.label}</th>`; }).join('')}
@@ -5134,7 +5207,17 @@ function imprimirSeguimientoCompleto() {
         </tr></thead><tbody>
         ${als.map(al => {
           const reg = state.seguimiento[al.id]?.[mat.id]?.[f];
-          if (!reg) return '';
+          const ausente = esAusente(al.id, curso.id, mat.id, f);
+          if (!reg) {
+            if (ausente) {
+              return `<tr style="background:#faf3f2;">
+                <td style="color:#8b1e10;">${al.nombre}</td>
+                ${INDS.map(()=>`<td style="text-align:center;font-size:9px;color:#8b1e10;">✗ Ausente</td>`).join('')}
+                <td class="obs-cell" style="color:#8b1e10;">Alumno/a ausente ese día</td>
+              </tr>`;
+            }
+            return '';
+          }
           return `<tr>
             <td>${al.nombre}</td>
             ${INDS.map(k => `<td style="text-align:center;">${fmtEstado(reg[k])}</td>`).join('')}
@@ -5143,6 +5226,115 @@ function imprimirSeguimientoCompleto() {
         }).join('')}
         </tbody></table>`;
       });
+
+      // ─── SÍNTESIS POR ALUMNO (compacta, al final del curso+materia) ───
+      html += `<h2 style="margin-top:18px;font-size:12px;color:#1a1a2e;border-bottom:2px solid #d4a017;padding-bottom:3px;">📌 Síntesis por alumno · ${curso.nombre} — ${mat.nombre}</h2>`;
+      html += `<table style="font-size:9px;"><thead><tr>
+        <th style="min-width:130px;">Alumno</th>
+        <th style="text-align:center;width:40px;">Clases</th>
+        ${INDS.map(k => { const info = indInfo(k); return `<th style="text-align:center;min-width:52px;" title="${info.label}">${info.emoji}<br><span style="font-size:7px;">${info.label}</span></th>`; }).join('')}
+        <th style="text-align:center;width:56px;">Tendencia</th>
+        <th style="min-width:150px;">Última observación</th>
+      </tr></thead><tbody>`;
+
+      // Datos para detectar destacados / a atención
+      const sintesis = [];
+
+      als.forEach(al => {
+        const reg = state.seguimiento[al.id]?.[mat.id] || {};
+        const fechasAl = fechas.filter(f => {
+          const r = reg[f];
+          return r && (INDS.some(i => r[i]) || (r.obs && r.obs.trim()));
+        });
+
+        if (!fechasAl.length) {
+          html += `<tr style="color:#999;">
+            <td>${al.nombre}</td>
+            <td style="text-align:center;">0</td>
+            ${INDS.map(()=>`<td style="text-align:center;color:#ccc;">—</td>`).join('')}
+            <td style="text-align:center;color:#ccc;">—</td>
+            <td style="font-style:italic;color:#999;">Sin registros en el período</td>
+          </tr>`;
+          sintesis.push({ al:al, tipo:'sin_datos', puntaje:0 });
+          return;
+        }
+
+        // Balance por indicador (mostrar como "✓3 ~1 ✗0" compacto)
+        const balPorInd = {};
+        let sumPuntos = 0, sumTot = 0;
+        INDS.forEach(k => {
+          balPorInd[k] = { ok:0, ep:0, no:0 };
+          fechasAl.forEach(f => {
+            const v = reg[f]?.[k];
+            if (v==='ok') { balPorInd[k].ok++; sumPuntos+=3; sumTot++; }
+            else if (v==='ep') { balPorInd[k].ep++; sumPuntos+=2; sumTot++; }
+            else if (v==='no') { balPorInd[k].no++; sumPuntos+=1; sumTot++; }
+          });
+        });
+        const promedio = sumTot ? sumPuntos/sumTot : 0;
+
+        // Tendencia: comparar primera mitad vs segunda mitad de registros
+        let tendencia = '→', tendColor = '#888', tendLabel = 'estable';
+        if (fechasAl.length >= 2) {
+          const mitad = Math.ceil(fechasAl.length/2);
+          const primera = fechasAl.slice(0, mitad);
+          const segunda = fechasAl.slice(-mitad);
+          const promSec = (fs) => {
+            let p=0, t=0;
+            fs.forEach(f => INDS.forEach(k => {
+              const v = reg[f]?.[k];
+              if (v==='ok'){p+=3;t++;} else if (v==='ep'){p+=2;t++;} else if (v==='no'){p+=1;t++;}
+            }));
+            return t ? p/t : 0;
+          };
+          const p1 = promSec(primera), p2 = promSec(segunda);
+          const diff = p2 - p1;
+          if (diff > 0.3) { tendencia = '↗'; tendColor = '#2d5e38'; tendLabel = 'mejora'; }
+          else if (diff < -0.3) { tendencia = '↘'; tendColor = '#8b1e10'; tendLabel = 'desciende'; }
+        }
+
+        // Última observación no vacía
+        const ultimaObs = fechasAl.slice().reverse().map(f => reg[f]?.obs).find(o => o && o.trim());
+
+        const chipInd = (b) => {
+          const parts = [];
+          if (b.ok) parts.push(`<span style="color:#2d5e38;font-weight:700;">✓${b.ok}</span>`);
+          if (b.ep) parts.push(`<span style="color:#7a5800;font-weight:700;">~${b.ep}</span>`);
+          if (b.no) parts.push(`<span style="color:#8b1e10;font-weight:700;">✗${b.no}</span>`);
+          return parts.length ? parts.join(' ') : '<span style="color:#ccc;">—</span>';
+        };
+
+        html += `<tr>
+          <td style="font-weight:600;">${al.nombre}</td>
+          <td style="text-align:center;color:#555;">${fechasAl.length}</td>
+          ${INDS.map(k => `<td style="text-align:center;">${chipInd(balPorInd[k])}</td>`).join('')}
+          <td style="text-align:center;font-size:14px;color:${tendColor};font-weight:700;" title="${tendLabel}">${tendencia}</td>
+          <td class="obs-cell" style="color:#333;font-style:normal;">${ultimaObs ? (ultimaObs.length>90?ultimaObs.slice(0,90)+'…':ultimaObs) : '<span style="color:#ccc;">—</span>'}</td>
+        </tr>`;
+
+        sintesis.push({ al:al, tipo:'ok', puntaje:promedio, tendencia:tendLabel, balPorInd:balPorInd, cantReg:fechasAl.length });
+      });
+
+      html += `</tbody></table>`;
+
+      // ─── ANÁLISIS PEDAGÓGICO DEL CURSO ───
+      const conDatos = sintesis.filter(s => s.tipo === 'ok');
+      if (conDatos.length) {
+        // Destacados: puntaje ≥ 2.5 (promedio entre ep y ok, sesgado a ok)
+        const destacados = conDatos.filter(s => s.puntaje >= 2.5).sort((a,b) => b.puntaje - a.puntaje);
+        // A atención: puntaje < 1.7 (más cerca de "no logrado") o tendencia descendente sostenida
+        const atencion = conDatos.filter(s => s.puntaje < 1.8 || (s.tendencia === 'desciende' && s.cantReg >= 3));
+        // En mejora
+        const enMejora = conDatos.filter(s => s.tendencia === 'mejora').sort((a,b) => b.puntaje - a.puntaje);
+
+        html += `<div style="margin-top:14px;padding:10px 12px;background:#fafaf7;border:1px solid #e0d8c8;border-radius:6px;font-size:10px;">
+          <div style="font-weight:700;color:#1a1a2e;margin-bottom:6px;font-size:11px;">🎓 Análisis pedagógico del curso</div>
+          ${destacados.length ? `<div style="margin-bottom:4px;"><strong style="color:#2d5e38;">Alumnos con recorrido sólido</strong> (${destacados.length}): ${destacados.slice(0,10).map(s=>s.al.nombre).join(', ')}${destacados.length>10?'…':''}.</div>` : ''}
+          ${enMejora.length ? `<div style="margin-bottom:4px;"><strong style="color:#7a5800;">Alumnos con evolución positiva</strong> (${enMejora.length}): ${enMejora.slice(0,10).map(s=>s.al.nombre).join(', ')}${enMejora.length>10?'…':''}.</div>` : ''}
+          ${atencion.length ? `<div style="margin-bottom:4px;"><strong style="color:#8b1e10;">Alumnos que requieren mayor acompañamiento</strong> (${atencion.length}): ${atencion.slice(0,10).map(s=>s.al.nombre).join(', ')}${atencion.length>10?'…':''}.</div>` : ''}
+          ${indFuerte && indDebil && indFuerte.key !== indDebil.key ? `<div style="margin-top:4px;color:#555;">El curso muestra <strong>mayor fortaleza en ${indInfo(indFuerte.key).label}</strong> (${Math.round(indFuerte.pct*100)}% de logros) y <strong>mayor dificultad en ${indInfo(indDebil.key).label}</strong> (${Math.round(indDebil.pct*100)}% de logros). Se sugiere focalizar propuestas didácticas que fortalezcan ${indInfo(indDebil.key).label.toLowerCase()}.</div>` : ''}
+        </div>`;
+      }
 
       html += `<hr class="seccion-sep">`;
     });
@@ -5154,7 +5346,8 @@ function imprimirSeguimientoCompleto() {
   }
 
   html += `<div style="font-size:9px;color:#888;margin-top:8px;">
-    <strong>Referencia:</strong> ✓ Logrado &nbsp; ~ En proceso &nbsp; ✗ No logrado &nbsp; — Sin registro
+    <strong>Referencia:</strong> ✓ Logrado · ~ En proceso · ✗ No logrado · — Sin registro &nbsp;·&nbsp;
+    <strong>Tendencia:</strong> ↗ mejora · → estable · ↘ desciende
   </div>`;
 
   _abrirVentanaPrint(html);
