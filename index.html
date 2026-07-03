@@ -940,6 +940,41 @@
   .sel-letra-6{background:#e67e22 !important;border-color:#e67e22 !important;color:white !important;transform:scale(1.08);}
   .sel-letra-7{background:#1a7a8a !important;border-color:#1a7a8a !important;color:white !important;transform:scale(1.08);}
 
+
+  /* ══ CIERRE DE NOTAS ══ */
+  .cierre-controles{display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;}
+  .cierre-periodo-btns{display:flex;gap:.4rem;flex-wrap:wrap;}
+  .cierre-per-btn{padding:.5rem 1.1rem;border-radius:8px;border:2px solid var(--border);background:var(--card);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;color:var(--muted);}
+  .cierre-per-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .cierre-per-btn:hover:not(.active){border-color:var(--gold);color:var(--ink);}
+  .cierre-table-wrap{overflow-x:auto;}
+  .cierre-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  .cierre-table th{position:sticky;top:0;background:var(--card);z-index:2;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:.6rem .7rem;border-bottom:2px solid var(--border);white-space:nowrap;}
+  .cierre-table td{padding:.5rem .55rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .cierre-table tr:hover td{background:var(--paper);}
+  .cierre-nota-input{width:64px;text-align:center;font-weight:700;font-size:1rem;padding:.4rem .3rem;font-family:'DM Sans',sans-serif;}
+  .cierre-nota-input.n-alta{background:rgba(74,124,89,.08);border-color:rgba(74,124,89,.4);color:var(--sage);}
+  .cierre-nota-input.n-media{background:rgba(212,160,23,.08);border-color:rgba(212,160,23,.4);color:#9a7000;}
+  .cierre-nota-input.n-baja{background:rgba(192,57,43,.08);border-color:rgba(192,57,43,.4);color:var(--accent);}
+  .cierre-concepto-input{min-width:120px;font-size:.85rem;text-align:center;font-weight:600;}
+  .cierre-obs-input{width:100%;min-width:180px;font-size:.82rem;padding:.4rem .55rem;resize:none;font-family:'DM Sans',sans-serif;color:var(--ink);}
+  .cierre-alumno-cell{display:flex;align-items:center;gap:.5rem;font-weight:500;min-width:180px;}
+  .cierre-toolbar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem;align-items:center;}
+  .cierre-stats{display:flex;gap:.6rem;flex-wrap:wrap;font-size:.78rem;margin-bottom:.9rem;}
+  .cierre-stat{background:var(--paper);border:1px solid var(--border);border-radius:20px;padding:.25rem .75rem;font-weight:600;}
+  .cierre-stat.aprob{color:var(--sage);border-color:rgba(74,124,89,.35);background:rgba(74,124,89,.05);}
+  .cierre-stat.desap{color:var(--accent);border-color:rgba(192,57,43,.3);background:rgba(192,57,43,.04);}
+  .cierre-stat.prom{color:var(--gold);border-color:rgba(212,160,23,.35);background:rgba(212,160,23,.05);}
+  .cierre-saved-badge{display:inline-block;margin-left:.4rem;font-size:.7rem;color:var(--sage);opacity:0;transition:opacity .3s;}
+  .cierre-saved-badge.show{opacity:1;}
+  @media(max-width:480px){
+    .cierre-alumno-cell{min-width:120px;font-size:.78rem;}
+    .cierre-nota-input{width:52px;font-size:.9rem;}
+    .cierre-concepto-input{min-width:80px;font-size:.78rem;}
+    .cierre-obs-input{min-width:140px;font-size:.75rem;}
+    .cierre-per-btn{padding:.4rem .8rem;font-size:.75rem;}
+  }
+
 </style>
 </head>
 <body>
@@ -973,6 +1008,7 @@
   <div class="nav-tab"          onclick="goTab('horario',this)">🕐 Horario</div>
   <div class="nav-tab"          onclick="goTab('escuelas',this)">🏫 Escuelas</div>
   <div class="nav-tab"          onclick="goTab('trayectoria',this)">👤 Trayectoria</div>
+  <div class="nav-tab"          onclick="goTab('cierre',this)">📋 Cierre</div>
   <div class="nav-tab"          onclick="goTab('mapa',this)">🗺️ Mapa del aula</div>
 </div>
 
@@ -992,6 +1028,7 @@
   <div class="mas-item" onclick="bnavGoMas('horario')">🕐 Horario</div>
   <div class="mas-item" onclick="bnavGoMas('escuelas')">🏫 Escuelas</div>
   <div class="mas-item" onclick="bnavGoMas('trayectoria')">👤 Trayectoria</div>
+  <div class="mas-item" onclick="bnavGoMas('cierre')">📋 Cierre de notas</div>
   <div class="mas-item" onclick="bnavGoMas('mapa')">🗺️ Mapa del aula</div>
 </div>
 <div class="mas-overlay" id="mas-overlay" onclick="closeMasMenu()"></div>
@@ -1306,6 +1343,44 @@
   </div>
 </div>
 
+<!-- ═══ CIERRE DE NOTAS ═══ -->
+<div class="tab-content" id="tab-cierre">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
+    <div class="section-title" style="margin:0;">📋 Cierre de notas</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="exportarCSVCierre()">⬇️ CSV</button>
+      <button class="btn btn-ghost btn-sm" onclick="imprimirCierre()">🖨️ PDF</button>
+      <button class="btn btn-success btn-sm" onclick="guardarCierre()">💾 Guardar cambios</button>
+    </div>
+  </div>
+
+  <div class="school-bar" id="filtro-cierre-pills"></div>
+
+  <div class="cierre-controles">
+    <div style="flex:1;min-width:130px;"><label>Curso</label><select id="cierre-curso" onchange="updateMateriasCierre();renderCierre()"></select></div>
+    <div style="flex:1;min-width:130px;"><label>Materia</label><select id="cierre-materia" onchange="renderCierre()"></select></div>
+    <div>
+      <label>Período</label>
+      <div class="cierre-periodo-btns" id="cierre-periodo-btns">
+        <button class="cierre-per-btn active" data-p="c1" onclick="setPeriodoCierre('c1',this)">1° Cuatrim.</button>
+        <button class="cierre-per-btn" data-p="c2" onclick="setPeriodoCierre('c2',this)">2° Cuatrim.</button>
+        <button class="cierre-per-btn" data-p="anual" onclick="setPeriodoCierre('anual',this)">Anual</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cierre-stats" id="cierre-stats"></div>
+
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="cierre-table-wrap" id="cierre-tabla-wrap"></div>
+  </div>
+
+  <div class="empty-state" id="cierre-empty" style="display:none;">
+    <div class="big">📋</div>
+    <div>Seleccioná una escuela, curso y materia para cerrar notas.</div>
+  </div>
+</div>
+
 <!-- ═══ MAPA DEL AULA ═══ -->
 <div class="tab-content" id="tab-mapa">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
@@ -1587,6 +1662,10 @@ let state={
   trayectoria:{},
   eventos:[],
   notas:[],
+  // cierres[cursoId_materiaId_periodo] = { alumnoId: { nota, concepto, obs } }
+  cierres:{},
+  filtroEscuelaCierre:null,
+  periodoCierre:'c1',
 };
 
 // Seed eventos y asistencia SOLO si no hay datos guardados
@@ -1635,11 +1714,12 @@ function goTab(name,el){
   else if(name==='horario'){renderHorario();}
   else if(name==='escuelas'){renderEscuelas();}
   else if(name==='trayectoria'){renderTrayLista();}
+  else if(name==='cierre'){renderFiltroCierre();renderCierre();}
   else if(name==='mapa'){renderFiltroMapa();mapaCargar();}
 }
 function goTabDirect(name){
   const tabs=document.querySelectorAll('.nav-tab');
-  const map={'inicio':0,'calendario':1,'alumnos':2,'asistencia':3,'historial':4,'horario':5,'escuelas':6,'trayectoria':7,'mapa':8};
+  const map={'inicio':0,'calendario':1,'alumnos':2,'asistencia':3,'historial':4,'horario':5,'escuelas':6,'trayectoria':7,'cierre':8,'mapa':9};
   goTab(name,tabs[map[name]]);
 }
 function bnavGo(name,idx){
@@ -3312,6 +3392,7 @@ function saveLS(){
     trayectoria:state.trayectoria,
     mapaAulas:state.mapaAulas||{},
     mapaAsist:state.mapaAsist||{},
+    cierres:state.cierres||{},
     nextId:state.nextId,
   };
   try{localStorage.setItem(LS_KEY,JSON.stringify(toSave));}catch(e){}
@@ -3336,6 +3417,7 @@ function loadLS(){
     if(data.trayectoria   !==undefined)state.trayectoria  =data.trayectoria;
     if(data.mapaAulas     !==undefined)state.mapaAulas    =data.mapaAulas;
     if(data.mapaAsist     !==undefined)state.mapaAsist    =data.mapaAsist;
+    if(data.cierres       !==undefined)state.cierres      =data.cierres;
     if(data.nextId        !==undefined)state.nextId       =data.nextId;
     return true;
   }catch(e){return false;}
@@ -3436,6 +3518,7 @@ function exportarDatos(){
     trayectoria:state.trayectoria,
     mapaAulas:state.mapaAulas||{},
     mapaAsist:state.mapaAsist||{},
+    cierres:state.cierres||{},
     nextId:state.nextId,
   };
   const json=JSON.stringify(datos,null,2);
@@ -3474,6 +3557,7 @@ function importarDatos(event){
       state.trayectoria=datos.trayectoria||{};
       state.mapaAulas=datos.mapaAulas||{};
       state.mapaAsist=datos.mapaAsist||{};
+      state.cierres=datos.cierres||{};
       state.nextId=datos.nextId||200;
       saveLS();renderAll();
       showToast('✅ Datos importados correctamente');
@@ -3982,6 +4066,7 @@ async function _driveDoPull() {
     if(datos.trayectoria)  state.trayectoria  = datos.trayectoria;
     if(datos.mapaAulas)    state.mapaAulas    = datos.mapaAulas;
     if(datos.mapaAsist)    state.mapaAsist    = datos.mapaAsist;
+    if(datos.cierres)      state.cierres      = datos.cierres;
     if(datos.nextId)       state.nextId       = datos.nextId;
     saveLS(); renderAll();
 
@@ -4007,6 +4092,7 @@ function _buildSyncData() {
     eventos:state.eventos, notas:state.notas, horario:state.horario||[],
     trayectoria:state.trayectoria||{},
     mapaAulas:state.mapaAulas||{}, mapaAsist:state.mapaAsist||{},
+    cierres:state.cierres||{},
     nextId:state.nextId,
   };
 }
@@ -5856,6 +5942,369 @@ function inyectarConfigLetras() {
   renderLetrasPanel();
   if (typeof window.renderIndConfigPanel === 'function') window.renderIndConfigPanel();
 }
+
+
+
+
+// ══════════════════════════════════════════════════════
+// CIERRE DE NOTAS (cuatrimestral + anual)
+// ══════════════════════════════════════════════════════
+const PERIODO_LABEL = { c1:'1° Cuatrimestre', c2:'2° Cuatrimestre', anual:'Cierre anual' };
+
+function renderFiltroCierre(){
+  const el = document.getElementById('filtro-cierre-pills');
+  if(!el) return;
+  el.innerHTML = state.escuelas.map(function(e){
+    return '<div class="school-pill '+getCC(e.id)+' '+(state.filtroEscuelaCierre===e.id?'active':'')+'" onclick="setFiltroCierre('+e.id+')"><span class="dot"></span>'+e.nombre+'</div>';
+  }).join('');
+}
+
+function setFiltroCierre(id){
+  state.filtroEscuelaCierre = id;
+  renderFiltroCierre();
+  const cs = state.cursos.filter(function(c){return c.escuelaId===id;});
+  document.getElementById('cierre-curso').innerHTML =
+    cs.map(function(c){return '<option value="'+c.id+'">'+c.nombre+'</option>';}).join('')
+    || '<option disabled>Sin cursos</option>';
+  updateMateriasCierre();
+  renderCierre();
+}
+
+function updateMateriasCierre(){
+  const cursoId = parseInt(document.getElementById('cierre-curso').value);
+  const mats = cursoId ? getMateriasDelCurso(cursoId) : [];
+  document.getElementById('cierre-materia').innerHTML =
+    mats.map(function(m){return '<option value="'+m.id+'">'+m.nombre+'</option>';}).join('')
+    || '<option disabled>Sin materias</option>';
+}
+
+function setPeriodoCierre(p, btn){
+  state.periodoCierre = p;
+  document.querySelectorAll('.cierre-per-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  renderCierre();
+}
+
+function _cierreKey(){
+  const cursoId = parseInt(document.getElementById('cierre-curso').value);
+  const materiaId = parseInt(document.getElementById('cierre-materia').value);
+  const p = state.periodoCierre || 'c1';
+  if(!cursoId || !materiaId) return null;
+  return cursoId + '_' + materiaId + '_' + p;
+}
+
+function _getCierreReg(alumnoId){
+  const key = _cierreKey();
+  if(!key) return { nota:null, concepto:'', obs:'' };
+  if(!state.cierres[key]) state.cierres[key] = {};
+  if(!state.cierres[key][alumnoId]) state.cierres[key][alumnoId] = { nota:null, concepto:'', obs:'' };
+  return state.cierres[key][alumnoId];
+}
+
+function _notaClassCierre(n){
+  if(n==null || isNaN(n)) return '';
+  if(n>=7) return 'n-alta';
+  if(n>=4) return 'n-media';
+  return 'n-baja';
+}
+
+// Rango de meses por período (0-indexed, inclusive)
+function _rangoPeriodo(p){
+  if(p==='c1')    return {desde:1, hasta:6};   // feb-jul
+  if(p==='c2')    return {desde:7, hasta:11};  // ago-dic
+  return {desde:0, hasta:11};                  // anual: todo el año
+}
+
+function _asistenciaAlumnoPeriodo(cursoId, materiaId, alumnoId, periodo){
+  const prefix = cursoId+'_'+materiaId+'_';
+  const rango = _rangoPeriodo(periodo);
+  const anioActual = new Date().getFullYear();
+  let P=0, A=0, T=0, total=0;
+  Object.keys(state.asistencia).forEach(function(k){
+    if(!k.startsWith(prefix)) return;
+    const fecha = k.replace(prefix,'');
+    const partes = fecha.split('-');
+    if(partes.length!==3) return;
+    const y = parseInt(partes[0]);
+    const m = parseInt(partes[1]) - 1;
+    if(y !== anioActual) return;
+    if(m < rango.desde || m > rango.hasta) return;
+    const d = state.asistencia[k][alumnoId];
+    if(!d || !d.estado) return;
+    total++;
+    if(d.estado==='P') P++;
+    else if(d.estado==='A') A++;
+    else if(d.estado==='T') T++;
+  });
+  if(!total) return { pct:null, P:0, A:0, T:0, total:0 };
+  return { pct: Math.round((P+T)/total*100), P:P, A:A, T:T, total:total };
+}
+
+function _asistCls(pct){
+  if(pct==null) return '';
+  if(pct>=85) return 'sage';
+  if(pct>=70) return 'gold';
+  return 'accent';
+}
+
+function renderCierre(){
+  const wrap = document.getElementById('cierre-tabla-wrap');
+  const empty = document.getElementById('cierre-empty');
+  const statsEl = document.getElementById('cierre-stats');
+  const cursoId = parseInt(document.getElementById('cierre-curso').value);
+  const materiaId = parseInt(document.getElementById('cierre-materia').value);
+
+  if(!state.filtroEscuelaCierre || !cursoId || !materiaId){
+    wrap.innerHTML = '';
+    statsEl.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const als = state.alumnos.filter(function(a){return a.cursoId===cursoId;});
+  if(!als.length){
+    wrap.innerHTML = '<div class="empty-state"><div class="big">👤</div><div>Este curso no tiene alumnos aún.</div></div>';
+    statsEl.innerHTML = '';
+    return;
+  }
+  als.sort(function(a,b){return a.nombre.localeCompare(b.nombre);});
+
+  const col = getColor(state.filtroEscuelaCierre);
+
+  wrap.innerHTML =
+    '<table class="cierre-table"><thead><tr>'+
+      '<th style="width:32px;">#</th>'+
+      '<th>Alumno</th>'+
+      '<th style="text-align:center;">% Asist.</th>'+
+      '<th style="text-align:center;">Nota (1-10)</th>'+
+      '<th style="text-align:center;">Concepto / texto</th>'+
+      '<th>Observaciones</th>'+
+    '</tr></thead><tbody>'+
+    als.map(function(al, i){
+      const r = _getCierreReg(al.id);
+      const notaVal = r.nota != null ? r.nota : '';
+      const cls = _notaClassCierre(r.nota);
+      const asist = _asistenciaAlumnoPeriodo(cursoId, materiaId, al.id, state.periodoCierre||'c1');
+      const asistCls = _asistCls(asist.pct);
+      const asistColor = asistCls==='sage'?'var(--sage)':asistCls==='gold'?'#9a7000':asistCls==='accent'?'var(--accent)':'var(--muted)';
+      return '<tr>'+
+        '<td style="color:var(--muted);font-size:.75rem;text-align:center;">'+(i+1)+'</td>'+
+        '<td>'+
+          '<div class="cierre-alumno-cell">'+
+            '<div class="avatar" style="background:'+col+'">'+initials(al.nombre)+'</div>'+
+            '<span>'+al.nombre+'</span>'+
+          '</div>'+
+        '</td>'+
+        '<td style="text-align:center;">'+
+          (asist.pct!=null
+            ? '<div style="font-weight:700;font-size:.9rem;color:'+asistColor+'">'+asist.pct+'%</div>'+
+              '<div style="font-size:.65rem;color:var(--muted);">'+asist.P+'P '+asist.A+'A '+asist.T+'T</div>'
+            : '<span style="color:var(--border);font-size:.75rem;">Sin datos</span>')+
+        '</td>'+
+        '<td style="text-align:center;">'+
+          '<input type="number" min="1" max="10" step="0.5" class="cierre-nota-input '+cls+'" '+
+                 'value="'+notaVal+'" placeholder="—" '+
+                 'oninput="onCierreNota('+al.id+',this)" '+
+                 'data-aid="'+al.id+'">'+
+        '</td>'+
+        '<td style="text-align:center;">'+
+          '<input type="text" class="cierre-concepto-input" placeholder="Ej: MB, A, Aprobado…" '+
+                 'value="'+(r.concepto||'').replace(/"/g,'&quot;')+'" '+
+                 'oninput="onCierreConcepto('+al.id+',this.value)">'+
+        '</td>'+
+        '<td>'+
+          '<textarea class="cierre-obs-input" rows="1" placeholder="Observación de cierre…" '+
+                    'oninput="onCierreObs('+al.id+',this.value)">'+(r.obs||'')+'</textarea>'+
+        '</td>'+
+      '</tr>';
+    }).join('')+
+    '</tbody></table>';
+
+  renderCierreStats();
+}
+
+function renderCierreStats(){
+  const cursoId = parseInt(document.getElementById('cierre-curso').value);
+  const als = state.alumnos.filter(function(a){return a.cursoId===cursoId;});
+  const key = _cierreKey();
+  const reg = key ? (state.cierres[key]||{}) : {};
+  let aprob = 0, desap = 0, sinNota = 0;
+  let sum = 0, count = 0;
+  als.forEach(function(al){
+    const r = reg[al.id];
+    if(!r || r.nota == null || isNaN(r.nota)){ sinNota++; return; }
+    const n = parseFloat(r.nota);
+    if(n>=6) aprob++;
+    else desap++;
+    sum += n; count++;
+  });
+  const prom = count ? (sum/count).toFixed(1) : '—';
+  const total = als.length;
+  const pctAprob = total ? Math.round(aprob/total*100) : 0;
+  document.getElementById('cierre-stats').innerHTML =
+    '<span class="cierre-stat">👥 Total: '+total+'</span>'+
+    '<span class="cierre-stat aprob">✓ Aprobados: '+aprob+' ('+pctAprob+'%)</span>'+
+    '<span class="cierre-stat desap">✗ Desaprobados: '+desap+'</span>'+
+    '<span class="cierre-stat">— Sin cargar: '+sinNota+'</span>'+
+    '<span class="cierre-stat prom">📊 Promedio: '+prom+'</span>';
+}
+
+function onCierreNota(alumnoId, inputEl){
+  const v = inputEl.value;
+  const r = _getCierreReg(alumnoId);
+  r.nota = (v==='' ? null : parseFloat(v));
+  // Actualizar clase de color
+  inputEl.classList.remove('n-alta','n-media','n-baja');
+  const cls = _notaClassCierre(r.nota);
+  if(cls) inputEl.classList.add(cls);
+  renderCierreStats();
+  _cierreAutoSave();
+}
+
+function onCierreConcepto(alumnoId, valor){
+  _getCierreReg(alumnoId).concepto = valor;
+  _cierreAutoSave();
+}
+
+function onCierreObs(alumnoId, valor){
+  _getCierreReg(alumnoId).obs = valor;
+  _cierreAutoSave();
+}
+
+let _cierreAutoSaveTimer = null;
+function _cierreAutoSave(){
+  clearTimeout(_cierreAutoSaveTimer);
+  _cierreAutoSaveTimer = setTimeout(function(){
+    saveLS();
+  }, 500);
+}
+
+function guardarCierre(){
+  saveLS();
+  showToast('💾 Cierre guardado');
+}
+
+function exportarCSVCierre(){
+  const cursoId = parseInt(document.getElementById('cierre-curso').value);
+  const materiaId = parseInt(document.getElementById('cierre-materia').value);
+  const p = state.periodoCierre || 'c1';
+  if(!state.filtroEscuelaCierre || !cursoId || !materiaId){
+    showToast('⚠️ Seleccioná escuela, curso y materia');
+    return;
+  }
+  const als = state.alumnos.filter(function(a){return a.cursoId===cursoId;});
+  als.sort(function(a,b){return a.nombre.localeCompare(b.nombre);});
+  const key = cursoId+'_'+materiaId+'_'+p;
+  const reg = state.cierres[key] || {};
+  const curso = getCurso(cursoId);
+  const esc = getEscuela(state.filtroEscuelaCierre);
+  const mat = getMateria(materiaId);
+  let csv = 'Escuela,Curso,Materia,Período,Alumno,% Asistencia,Presentes,Ausentes,Tardes,Nota,Concepto,Observaciones\n';
+  als.forEach(function(al){
+    const r = reg[al.id] || {};
+    const asist = _asistenciaAlumnoPeriodo(cursoId, materiaId, al.id, p);
+    const pctStr = asist.pct!=null ? asist.pct+'%' : '—';
+    csv += '"'+(esc?esc.nombre:'')+'","'+(curso?curso.nombre:'')+'","'+(mat?mat.nombre:'')+'","'+PERIODO_LABEL[p]+'","'+al.nombre+'","'+pctStr+'","'+asist.P+'","'+asist.A+'","'+asist.T+'","'+(r.nota!=null?r.nota:'—')+'","'+(r.concepto||'').replace(/"/g,'""')+'","'+(r.obs||'').replace(/"/g,'""')+'"\n';
+  });
+  descargar(csv, 'cierre_'+(curso?curso.nombre:'')+'_'+(mat?mat.nombre:'')+'_'+p+'.csv');
+  showToast('⬇️ CSV descargado');
+}
+
+function imprimirCierre(){
+  const cursoId = parseInt(document.getElementById('cierre-curso').value);
+  const materiaId = parseInt(document.getElementById('cierre-materia').value);
+  const p = state.periodoCierre || 'c1';
+  if(!state.filtroEscuelaCierre || !cursoId || !materiaId){
+    showToast('⚠️ Seleccioná escuela, curso y materia');
+    return;
+  }
+  const als = state.alumnos.filter(function(a){return a.cursoId===cursoId;});
+  als.sort(function(a,b){return a.nombre.localeCompare(b.nombre);});
+  const key = cursoId+'_'+materiaId+'_'+p;
+  const reg = state.cierres[key] || {};
+  const curso = getCurso(cursoId);
+  const esc = getEscuela(state.filtroEscuelaCierre);
+  const mat = getMateria(materiaId);
+
+  let aprob=0, desap=0, sinNota=0, sum=0, count=0;
+  als.forEach(function(al){
+    const r = reg[al.id];
+    if(!r || r.nota==null || isNaN(r.nota)){ sinNota++; return; }
+    const n = parseFloat(r.nota);
+    if(n>=6) aprob++; else desap++;
+    sum+=n; count++;
+  });
+  const prom = count ? (sum/count).toFixed(1) : '—';
+
+  let html = _encabezadoPrint(
+    'Planilla de cierre — ' + PERIODO_LABEL[p],
+    (esc?esc.nombre:'')+' · '+(curso?curso.nombre:'')+' · '+(mat?mat.nombre:'')
+  );
+  html += '<div class="resumen-bar">'+
+    '<span class="rs rs-p">✓ Aprobados: '+aprob+'</span>'+
+    '<span class="rs rs-a">✗ Desaprobados: '+desap+'</span>'+
+    '<span class="rs rs-t">Sin cargar: '+sinNota+'</span>'+
+    '<span style="color:#888;">Promedio: '+prom+' · '+als.length+' alumno(s)</span>'+
+  '</div>';
+  html += '<table><thead><tr>'+
+    '<th style="width:24px;">#</th>'+
+    '<th style="min-width:180px;">Alumno</th>'+
+    '<th style="text-align:center;width:70px;">% Asist.</th>'+
+    '<th style="text-align:center;width:60px;">Nota</th>'+
+    '<th style="text-align:center;min-width:80px;">Concepto</th>'+
+    '<th>Observaciones</th>'+
+    '<th style="width:70px;text-align:center;">Firma</th>'+
+  '</tr></thead><tbody>';
+  als.forEach(function(al, i){
+    const r = reg[al.id] || {};
+    const cls = _notaClassCierre(r.nota);
+    const badgeCls = cls==='n-alta'?'nota-a':cls==='n-media'?'nota-b':cls==='n-baja'?'nota-c':'';
+    const asist = _asistenciaAlumnoPeriodo(cursoId, materiaId, al.id, p);
+    const asColor = asist.pct!=null && asist.pct<70 ? '#c0392b' : asist.pct!=null && asist.pct<85 ? '#7a5800' : '#2d5e38';
+    html += '<tr>'+
+      '<td style="text-align:center;color:#888;">'+(i+1)+'</td>'+
+      '<td>'+al.nombre+'</td>'+
+      '<td style="text-align:center;">'+(asist.pct!=null?'<span style="font-weight:700;color:'+asColor+';">'+asist.pct+'%</span><br><span style="font-size:8px;color:#888;">'+asist.P+'P '+asist.A+'A '+asist.T+'T</span>':'<span style="color:#ccc;">—</span>')+'</td>'+
+      '<td style="text-align:center;">'+(r.nota!=null?'<span class="nota-badge '+badgeCls+'">'+r.nota+'</span>':'<span style="color:#ccc;">—</span>')+'</td>'+
+      '<td style="text-align:center;font-weight:700;">'+(r.concepto||'<span style="color:#ccc;">—</span>')+'</td>'+
+      '<td style="font-size:9px;">'+(r.obs||'')+'</td>'+
+      '<td style="border-bottom:1px solid #333;"></td>'+
+    '</tr>';
+  });
+  html += '</tbody></table>';
+  html += '<div style="margin-top:30px;display:flex;justify-content:space-between;font-size:10px;">'+
+    '<div style="text-align:center;min-width:200px;">'+
+      '<div style="border-top:1px solid #333;padding-top:4px;">Firma docente</div>'+
+    '</div>'+
+    '<div style="text-align:center;min-width:200px;">'+
+      '<div style="border-top:1px solid #333;padding-top:4px;">Firma directivo</div>'+
+    '</div>'+
+  '</div>';
+
+  _abrirVentanaPrint(html);
+  showToast('🖨️ Preparando planilla de cierre…');
+}
+
+// Inicializar filtro por defecto al abrir la pestaña
+function _cierreInitDefaults(){
+  if(state.filtroEscuelaCierre==null && state.escuelas.length){
+    state.filtroEscuelaCierre = state.escuelas[0].id;
+    const cs = state.cursos.filter(function(c){return c.escuelaId===state.filtroEscuelaCierre;});
+    const selC = document.getElementById('cierre-curso');
+    if(selC){
+      selC.innerHTML = cs.map(function(c){return '<option value="'+c.id+'">'+c.nombre+'</option>';}).join('') || '<option disabled>Sin cursos</option>';
+    }
+    updateMateriasCierre();
+  }
+}
+
+// Parchear goTab para inicializar por defecto
+const _renderFiltroCierreOrig = renderFiltroCierre;
+window.renderFiltroCierre = function(){
+  _cierreInitDefaults();
+  _renderFiltroCierreOrig();
+};
 
 
 </script>
