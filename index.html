@@ -1161,6 +1161,18 @@
           <div class="letras-preview" id="letras-preview-badges"></div>
         </div>
       </div>
+      <div style="margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--border);">
+        <div class="config-seccion-titulo" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;">
+          <span>🎯 Propósitos de la formación</span>
+          <span style="font-size:.7rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">Por curso + materia · Uno por línea</span>
+        </div>
+        <textarea id="propositos-materia-input"
+          rows="3"
+          placeholder="Ej: Reconocer las relaciones internacionales, considerando conflictos y consensos en la configuración de sociedades plurales, democráticas y participativas.&#10;Analizar los procesos de producción y consumo cultural..."
+          style="width:100%;padding:.65rem .85rem;border-radius:10px;border:1.5px solid var(--border);background:var(--paper);font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--ink);resize:vertical;min-height:70px;line-height:1.45;"
+          oninput="propositosOnInput(this.value)"></textarea>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:.35rem;">Estos propósitos aparecerán en todos los informes PDF de esta materia.</div>
+      </div>
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <div class="seg-indicador-header">
@@ -1623,6 +1635,8 @@ let state={
   cierres:{},
   filtroEscuelaCierre:null,
   periodoCierre:'c1',
+  // propositosMateria[cursoId_materiaId] = 'texto multi-linea'
+  propositosMateria:{},
 };
 
 // Seed eventos y asistencia SOLO si no hay datos guardados
@@ -3350,6 +3364,7 @@ function saveLS(){
     mapaAulas:state.mapaAulas||{},
     mapaAsist:state.mapaAsist||{},
     cierres:state.cierres||{},
+    propositosMateria:state.propositosMateria||{},
     nextId:state.nextId,
   };
   try{localStorage.setItem(LS_KEY,JSON.stringify(toSave));}catch(e){}
@@ -3375,6 +3390,7 @@ function loadLS(){
     if(data.mapaAulas     !==undefined)state.mapaAulas    =data.mapaAulas;
     if(data.mapaAsist     !==undefined)state.mapaAsist    =data.mapaAsist;
     if(data.cierres       !==undefined)state.cierres      =data.cierres;
+    if(data.propositosMateria!==undefined)state.propositosMateria=data.propositosMateria;
     if(data.nextId        !==undefined)state.nextId       =data.nextId;
     return true;
   }catch(e){return false;}
@@ -3476,6 +3492,7 @@ function exportarDatos(){
     mapaAulas:state.mapaAulas||{},
     mapaAsist:state.mapaAsist||{},
     cierres:state.cierres||{},
+    propositosMateria:state.propositosMateria||{},
     nextId:state.nextId,
   };
   const json=JSON.stringify(datos,null,2);
@@ -3515,6 +3532,7 @@ function importarDatos(event){
       state.mapaAulas=datos.mapaAulas||{};
       state.mapaAsist=datos.mapaAsist||{};
       state.cierres=datos.cierres||{};
+      state.propositosMateria=datos.propositosMateria||{};
       state.nextId=datos.nextId||200;
       saveLS();renderAll();
       showToast('✅ Datos importados correctamente');
@@ -4024,6 +4042,7 @@ async function _driveDoPull() {
     if(datos.mapaAulas)    state.mapaAulas    = datos.mapaAulas;
     if(datos.mapaAsist)    state.mapaAsist    = datos.mapaAsist;
     if(datos.cierres)      state.cierres      = datos.cierres;
+    if(datos.propositosMateria) state.propositosMateria = datos.propositosMateria;
     if(datos.nextId)       state.nextId       = datos.nextId;
     saveLS(); renderAll();
 
@@ -4050,6 +4069,7 @@ function _buildSyncData() {
     trayectoria:state.trayectoria||{},
     mapaAulas:state.mapaAulas||{}, mapaAsist:state.mapaAsist||{},
     cierres:state.cierres||{},
+    propositosMateria:state.propositosMateria||{},
     nextId:state.nextId,
   };
 }
@@ -5482,17 +5502,27 @@ function imprimirCombinado() {
           }).join('')}
         </div>`;
 
-      // Propósitos (temas con descripción, únicos)
+      // Propósitos: primero los configurados por materia, si no, los de las descripciones de temas
       const propositosVistos = new Set();
       const propositos = [];
-      todasFechas.forEach(f => {
-        const k = curso.id + '_' + mat.id + '_' + f;
-        const t = state.temas[k];
-        if (t && t.descripcion && !propositosVistos.has(t.descripcion)) {
-          propositos.push(t.descripcion);
-          propositosVistos.add(t.descripcion);
+      const propConfig = propositosLista(curso.id, mat.id);
+      propConfig.forEach(function(p) {
+        if (!propositosVistos.has(p)) {
+          propositos.push(p);
+          propositosVistos.add(p);
         }
       });
+      // Si no hay propósitos configurados, usar los que estén en descripciones de temas como fallback
+      if (!propositos.length) {
+        todasFechas.forEach(f => {
+          const k = curso.id + '_' + mat.id + '_' + f;
+          const t = state.temas[k];
+          if (t && t.descripcion && !propositosVistos.has(t.descripcion)) {
+            propositos.push(t.descripcion);
+            propositosVistos.add(t.descripcion);
+          }
+        });
+      }
 
       if (propositos.length) {
         html += `<div style="margin-top:8px;">
@@ -5663,6 +5693,62 @@ function imprimirCombinado() {
   _abrirVentanaPrint(html);
   showToast('🖨️ Preparando planilla combinada…');
 }
+
+
+// ══════════════════════════════════════════════════════
+// PROPÓSITOS DE LA FORMACIÓN (por curso+materia)
+// ══════════════════════════════════════════════════════
+function _propositosKeyActual() {
+  const cursoId = parseInt(document.getElementById('asist-curso')?.value);
+  const materiaId = parseInt(document.getElementById('asist-materia')?.value);
+  if (!cursoId || !materiaId) return null;
+  return cursoId + '_' + materiaId;
+}
+
+function propositosGet(cursoId, materiaId) {
+  const key = cursoId + '_' + materiaId;
+  return (state.propositosMateria || {})[key] || '';
+}
+
+function propositosOnInput(valor) {
+  const key = _propositosKeyActual();
+  if (!key) return;
+  if (!state.propositosMateria) state.propositosMateria = {};
+  if (valor && valor.trim()) {
+    state.propositosMateria[key] = valor;
+  } else {
+    delete state.propositosMateria[key];
+  }
+  clearTimeout(window._propositosSaveTimer);
+  window._propositosSaveTimer = setTimeout(function(){ saveLS(); }, 500);
+}
+
+function propositosRefrescarInput() {
+  const inp = document.getElementById('propositos-materia-input');
+  if (!inp) return;
+  const key = _propositosKeyActual();
+  inp.value = key ? (state.propositosMateria?.[key] || '') : '';
+}
+
+function propositosLista(cursoId, materiaId) {
+  const txt = propositosGet(cursoId, materiaId);
+  if (!txt) return [];
+  return txt.split(/\n+/).map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
+}
+
+// Hook: al cambiar de materia en la Clase del día, refrescar el input
+(function() {
+  const orig = window.claseOnMateriaChange;
+  window.claseOnMateriaChange = function() {
+    if (typeof orig === 'function') orig.apply(this, arguments);
+    propositosRefrescarInput();
+  };
+  const origCurso = window.claseOnCursoChange;
+  window.claseOnCursoChange = function() {
+    if (typeof origCurso === 'function') origCurso.apply(this, arguments);
+    setTimeout(propositosRefrescarInput, 50);
+  };
+})();
 
 // ── Genérico (para mapa u otras secciones) ───────────────────────
 function _imprimirGenerico(seccion) {
