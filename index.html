@@ -3346,6 +3346,10 @@ function renderAll(){
 // LOCALSTORAGE
 // ══════════════════════
 const LS_KEY='profedesk_v16';
+// Declaración temprana para evitar TDZ (se usan en trackSyncChange que puede
+// llamarse desde saveLS antes de la declaración original más abajo)
+var _unsavedChanges = 0;
+var _reminderShown = false;
 function saveLS(){
   if(typeof trackSyncChange==='function')trackSyncChange();
   const toSave={
@@ -3812,6 +3816,7 @@ setTimeout(mostrarNotificacion, 600);
 
 renderAll();
 setTimeout(chequearAviosoBackup, 2000);
+setTimeout(function(){ if(typeof propositosRefrescarInput==='function') propositosRefrescarInput(); }, 100);
 if(_hasSaved)showToast('✅ Datos cargados correctamente');
 else showToast('👋 Bienvenido a ProfeDesk');
 })(); // end initApp
@@ -4784,8 +4789,9 @@ function backupDesdeAviso(){
 // ═══════════════════════════════════════════════════
 // SYNC LOCAL (fallback cuando no hay Drive configurado)
 // ═══════════════════════════════════════════════════
-let _unsavedChanges = 0;
-let _reminderShown = false;
+// _unsavedChanges y _reminderShown declarados arriba
+_unsavedChanges = 0;
+_reminderShown = false;
 
 function setSyncStatus(icon, text) {
   const ic = document.getElementById('sync-icon');
@@ -5736,19 +5742,8 @@ function propositosLista(cursoId, materiaId) {
   return txt.split(/\n+/).map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
 }
 
-// Hook: al cambiar de materia en la Clase del día, refrescar el input
-(function() {
-  const orig = window.claseOnMateriaChange;
-  window.claseOnMateriaChange = function() {
-    if (typeof orig === 'function') orig.apply(this, arguments);
-    propositosRefrescarInput();
-  };
-  const origCurso = window.claseOnCursoChange;
-  window.claseOnCursoChange = function() {
-    if (typeof origCurso === 'function') origCurso.apply(this, arguments);
-    setTimeout(propositosRefrescarInput, 50);
-  };
-})();
+// (Refresco del textarea de propósitos: se llama desde claseOnMateriaChange
+// y claseOnCursoChange directamente, ya no hace falta wrapper)
 
 // ── Genérico (para mapa u otras secciones) ───────────────────────
 function _imprimirGenerico(seccion) {
@@ -6300,10 +6295,12 @@ function claseOnFiltroChange() {
 function claseOnCursoChange() {
   updateMateriasAsist();
   claseOnFiltroChange();
+  if (typeof propositosRefrescarInput === 'function') setTimeout(propositosRefrescarInput, 30);
 }
 function claseOnMateriaChange() {
   claseOnFiltroChange();
   cargarTemaSeg();
+  if (typeof propositosRefrescarInput === 'function') propositosRefrescarInput();
 }
 
 // setFiltroAsist ahora también sincroniza seguimiento
