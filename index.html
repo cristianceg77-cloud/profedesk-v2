@@ -585,52 +585,6 @@
   @media print{header,nav,.nav-tabs,.bottom-nav,.mas-menu,.mas-overlay,.toast,.save-reminder,.notif-overlay,.tray-overlay,.modal-bg,.btn,.btn-icon,.btn-sync,.btn-drive,.school-bar,.horario-vista-btns,.cal-nav,.form-actions,#btn-instalar{display:none!important;}body{background:white!important;color:black!important;}.tab-content{display:block!important;}.tab-content:not(.print-target){display:none!important;}.card{border:1px solid #ccc!important;box-shadow:none!important;break-inside:avoid;}.print-header{display:block!important;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid #333;}}
   .print-header{display:none;}
 
-      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
-      * { margin:0; padding:0; box-sizing:border-box; }
-      body { font-family:'DM Sans',sans-serif; color:#1a1a2e; background:white; font-size:11px; }
-      h1 { font-family:'Playfair Display',serif; font-size:18px; margin-bottom:4px; }
-      h2 { font-family:'Playfair Display',serif; font-size:14px; margin:14px 0 6px; color:#333; }
-      .meta { font-size:10px; color:#666; margin-bottom:12px; }
-      .badge { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
-      .badge-p  { background:rgba(74,124,89,.15); color:#2d5e38; }
-      .badge-a  { background:rgba(192,57,43,.12); color:#8b1e10; }
-      .badge-t  { background:rgba(212,160,23,.15); color:#7a5800; }
-      table { width:100%; border-collapse:collapse; font-size:10px; margin-bottom:16px; page-break-inside:auto; }
-      thead { background:#1a1a2e; color:white; }
-      th { padding:5px 7px; text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
-      td { padding:4px 7px; border-bottom:1px solid #e8e8e8; vertical-align:middle; }
-      tr:nth-child(even) td { background:#fafafa; }
-      tr:last-child td { border-bottom:none; }
-      .nota-badge { display:inline-block; min-width:22px; text-align:center; padding:1px 3px; border-radius:4px; font-weight:700; font-size:9px; }
-      .nota-a { background:rgba(74,124,89,.15); color:#2d5e38; }
-      .nota-b { background:rgba(212,160,23,.15); color:#7a5800; }
-      .nota-c { background:rgba(192,57,43,.12); color:#8b1e10; }
-      .dot { display:inline-block; width:9px; height:9px; border-radius:50%; }
-      .hP  { background:#4a7c59; }
-      .hA  { background:#c0392b; }
-      .hT  { background:#d4a017; }
-      .hN  { background:#ddd; }
-      .ind-ok { color:#2d5e38; font-weight:700; }
-      .ind-ep { color:#7a5800; font-weight:700; }
-      .ind-no { color:#8b1e10; font-weight:700; }
-      .ind-nd { color:#ccc; }
-      .resumen-bar { display:flex; gap:12px; font-size:10px; margin-bottom:10px; flex-wrap:wrap; }
-      .rs { padding:2px 8px; border-radius:10px; font-weight:700; }
-      .rs-p { background:rgba(74,124,89,.12); color:#2d5e38; }
-      .rs-a { background:rgba(192,57,43,.1); color:#8b1e10; }
-      .rs-t { background:rgba(212,160,23,.12); color:#7a5800; }
-      .encabezado { border-bottom:3px solid #d4a017; padding-bottom:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-start; }
-      .logo { font-size:22px; font-family:'Playfair Display',serif; }
-      .logo span { color:#c0392b; }
-      .tema-tag { background:#f5f0e8; border-left:3px solid #d4a017; padding:2px 6px; font-size:9px; color:#555; border-radius:0 4px 4px 0; margin-left:4px; }
-      .obs-cell { font-style:italic; color:#555; font-size:9px; max-width:160px; }
-      .chip { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
-      .chip-full { background:rgba(74,124,89,.15); color:#2d5e38; }
-      .chip-part { background:rgba(212,160,23,.15); color:#7a5800; }
-      .chip-none { background:rgba(192,57,43,.1); color:#8b1e10; }
-      .seccion-sep { border:none; border-top:1px solid #e0d8c8; margin:14px 0; }
-      @page { margin:12mm 10mm; }
-      @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
     
 .ind-config-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:1.2rem;}
 .ind-config-title{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;}
@@ -4877,9 +4831,82 @@ function imprimirSeccion(seccion) {
 
 // ── Helpers compartidos ──────────────────────────────────────────
 function _estilosPrint() {
-  return `
-    
-  `;
+  return `<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; color:#1a1a2e; background:white; font-size:11px; padding:10px; }
+    h1 { font-family:'Playfair Display',serif; font-size:18px; margin-bottom:4px; }
+    h2 { font-family:'Playfair Display',serif; font-size:14px; margin:14px 0 6px; color:#333; }
+    h3 { font-family:'Playfair Display',serif; font-size:12px; margin:10px 0 4px; color:#1a1a2e; }
+    .meta { font-size:10px; color:#666; margin-bottom:12px; }
+    .badge { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
+    .badge-p  { background:rgba(74,124,89,.15); color:#2d5e38; }
+    .badge-a  { background:rgba(192,57,43,.12); color:#8b1e10; }
+    .badge-t  { background:rgba(212,160,23,.15); color:#7a5800; }
+    table { width:100%; border-collapse:collapse; font-size:10px; margin-bottom:16px; page-break-inside:auto; }
+    thead { background:#1a1a2e; color:white; }
+    th { padding:5px 7px; text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+    td { padding:4px 7px; border-bottom:1px solid #e8e8e8; vertical-align:middle; }
+    tr:nth-child(even) td { background:#fafafa; }
+    tr:last-child td { border-bottom:none; }
+    .nota-badge { display:inline-block; min-width:22px; text-align:center; padding:1px 3px; border-radius:4px; font-weight:700; font-size:9px; }
+    .nota-a { background:rgba(74,124,89,.15); color:#2d5e38; }
+    .nota-b { background:rgba(212,160,23,.15); color:#7a5800; }
+    .nota-c { background:rgba(192,57,43,.12); color:#8b1e10; }
+    .dot { display:inline-block; width:9px; height:9px; border-radius:50%; }
+    .hP  { background:#4a7c59; }
+    .hA  { background:#c0392b; }
+    .hT  { background:#d4a017; }
+    .hN  { background:#ddd; }
+    .ind-ok { color:#2d5e38; font-weight:700; }
+    .ind-ep { color:#7a5800; font-weight:700; }
+    .ind-no { color:#8b1e10; font-weight:700; }
+    .ind-nd { color:#ccc; }
+    .resumen-bar { display:flex; gap:12px; font-size:10px; margin-bottom:10px; flex-wrap:wrap; }
+    .rs { padding:2px 8px; border-radius:10px; font-weight:700; }
+    .rs-p { background:rgba(74,124,89,.12); color:#2d5e38; }
+    .rs-a { background:rgba(192,57,43,.1); color:#8b1e10; }
+    .rs-t { background:rgba(212,160,23,.12); color:#7a5800; }
+    .encabezado { border-bottom:3px solid #d4a017; padding-bottom:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-start; }
+    .logo { font-size:22px; font-family:'Playfair Display',serif; }
+    .logo span { color:#c0392b; }
+    .tema-tag { background:#f5f0e8; border-left:3px solid #d4a017; padding:2px 6px; font-size:9px; color:#555; border-radius:0 4px 4px 0; margin-left:4px; }
+    .obs-cell { font-style:italic; color:#555; font-size:9px; max-width:160px; }
+    .chip { display:inline-block; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:700; }
+    .chip-full { background:rgba(74,124,89,.15); color:#2d5e38; }
+    .chip-part { background:rgba(212,160,23,.15); color:#7a5800; }
+    .chip-none { background:rgba(192,57,43,.1); color:#8b1e10; }
+    .seccion-sep { border:none; border-top:1px solid #e0d8c8; margin:14px 0; }
+
+    /* PLANILLA MATRICIAL (combinado estilo docente) */
+    .planilla-info { background:#fafaf7; border:1px solid #d4a017; border-radius:4px; padding:8px 10px; margin-bottom:10px; font-size:9.5px; }
+    .criterios-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; margin:6px 0; }
+    .criterio-item { font-size:9px; }
+    .criterio-item strong { color:#1a1a2e; }
+    .proposito-item { font-size:9px; color:#333; margin:3px 0; padding-left:8px; border-left:2px solid #d4a017; }
+    .planilla-matriz { table-layout:fixed; font-size:8.5px; }
+    .planilla-matriz th, .planilla-matriz td { padding:3px 2px; border:1px solid #ccc; text-align:center; }
+    .planilla-matriz thead { background:#1a1a2e; color:white; }
+    .planilla-matriz th.col-alumno { text-align:left; padding-left:6px; width:150px; }
+    .planilla-matriz td.col-alumno { text-align:left; padding-left:6px; font-weight:600; font-size:10px; }
+    .planilla-matriz th.col-num { font-size:8px; width:36px; padding:4px 2px; }
+    .planilla-matriz td.col-num { font-weight:700; font-size:11px; }
+    .planilla-matriz th.col-ind { font-size:8px; padding:4px 2px; width:60px; }
+    .planilla-matriz td.col-ind { font-size:9px; }
+    .planilla-matriz th.col-pct { font-size:8px; width:52px; }
+    .planilla-matriz td.col-pct { font-weight:700; font-size:11px; }
+    .planilla-matriz th.col-obs { font-size:8px; text-align:left; padding-left:6px; }
+    .planilla-matriz td.col-obs { text-align:left; padding-left:6px; font-size:8.5px; color:#333; line-height:1.3; }
+    .planilla-notas { display:grid; grid-template-columns:70px 1fr; gap:2px 8px; font-size:9px; margin-top:6px; }
+    .planilla-notas .fecha-marc { color:#7a5800; font-weight:600; }
+    .planilla-conceptos { margin-top:10px; padding:8px 10px; background:#faf3e6; border-left:3px solid #d4a017; font-size:8.5px; border-radius:0 4px 4px 0; }
+    .planilla-conceptos-item { margin:3px 0; display:flex; gap:6px; align-items:flex-start; }
+    .planilla-conceptos-item strong { flex-shrink:0; }
+    .leyenda-bar { display:flex; gap:12px; flex-wrap:wrap; font-size:8.5px; color:#555; margin:8px 0; padding:5px 8px; background:#f5f0e8; border-radius:4px; }
+
+    @page { size: A4 landscape; margin: 8mm 8mm; }
+    @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+  </style>`;
 }
 
 function _encabezadoPrint(titulo, subtitulo) {
@@ -5361,7 +5388,7 @@ function imprimirSeguimientoCompleto() {
 
 
 // ══════════════════════════════════════════════════════
-// INFORME COMBINADO (asistencia + seguimiento en una planilla)
+// INFORME COMBINADO (planilla matricial estilo docente)
 // ══════════════════════════════════════════════════════
 function imprimirCombinado() {
   const escuela = state.filtroEscuelaSeg ? getEscuela(state.filtroEscuelaSeg) : null;
@@ -5380,6 +5407,7 @@ function imprimirCombinado() {
     return {
       emoji: def ? def.emoji : IND_EMOJI_FALLBACK[key],
       label: def && def.label ? def.label : fallbackLabel,
+      desc:  def && def.desc  ? def.desc  : ''
     };
   }
 
@@ -5390,9 +5418,21 @@ function imprimirCombinado() {
     return typeof d === 'object' ? d.estado : d;
   }
 
+  function letraAsist(estado) {
+    if (estado === 'P') return { l:'P', cls:'cell-p' };
+    if (estado === 'A') return { l:'A', cls:'cell-a' };
+    if (estado === 'T') return { l:'T', cls:'cell-t' };
+    return { l:'·', cls:'cell-n' };
+  }
+
+  function fechaCorta(f) {
+    const p = f.split('-');
+    return p.length === 3 ? p[2] + '/' + p[1] : f;
+  }
+
   let html = _encabezadoPrint(
-    'Informe combinado — Asistencia y seguimiento',
-    (escuela ? escuela.nombre : 'Todas las escuelas') + ' · Planilla única de situación por alumno'
+    'Planilla docente combinada',
+    (escuela ? escuela.nombre : 'Todas las escuelas') + ' · Asistencia y seguimiento pedagógico'
   );
 
   let totalSecciones = 0;
@@ -5424,222 +5464,190 @@ function imprimirCombinado() {
         });
       });
 
-      const todasFechas = new Set([...fechasAsist, ...fechasSeg]);
-      if (!todasFechas.size) return;
+      const todasFechas = [...new Set([...fechasAsist, ...fechasSeg])].sort();
+      if (!todasFechas.length) return;
       totalSecciones++;
-
-      const fechasOrd = [...todasFechas].sort();
-      const primeraF = fechasOrd[0];
-      const ultimaF = fechasOrd[fechasOrd.length - 1];
-
-      html += `<h2>${escCurso ? escCurso.nombre + ' · ' : ''}${curso.nombre} — ${mat.nombre}</h2>`;
-
-      // Cálculo global de seguimiento
-      let totInd = 0, totOk = 0, totEp = 0, totNo = 0;
-      const porInd = {};
-      INDS.forEach(k => porInd[k] = { ok:0, ep:0, no:0, tot:0 });
-      let alsEval = 0;
-
-      als.forEach(al => {
-        const reg = state.seguimiento[al.id]?.[mat.id];
-        if (!reg) return;
-        let tuvo = false;
-        fechasSeg.forEach(f => {
-          const r = reg[f];
-          if (!r) return;
-          INDS.forEach(k => {
-            if (r[k]) {
-              totInd++; porInd[k].tot++;
-              if (r[k]==='ok') { totOk++; porInd[k].ok++; }
-              else if (r[k]==='ep') { totEp++; porInd[k].ep++; }
-              else if (r[k]==='no') { totNo++; porInd[k].no++; }
-              tuvo = true;
-            }
-          });
-        });
-        if (tuvo) alsEval++;
-      });
-
-      // Asistencia global
-      let P_curso=0, A_curso=0, T_curso=0, tot_curso=0;
-      als.forEach(al => {
-        fechasAsist.forEach(f => {
-          const e = estadoAsist(al.id, curso.id, mat.id, f);
-          if (!e) return;
-          tot_curso++;
-          if (e==='P') P_curso++;
-          else if (e==='A') A_curso++;
-          else if (e==='T') T_curso++;
-        });
-      });
-      const pctAsisCurso = tot_curso ? Math.round((P_curso+T_curso)/tot_curso*100) : 0;
-
-      const pctOk = totInd ? Math.round(totOk/totInd*100) : 0;
-      const pctEp = totInd ? Math.round(totEp/totInd*100) : 0;
-      const pctNo = totInd ? Math.round(totNo/totInd*100) : 0;
-
-      let indFuerte = null, indDebil = null;
-      INDS.forEach(k => {
-        if (porInd[k].tot < 3) return;
-        const pctOkK = porInd[k].ok / porInd[k].tot;
-        if (!indFuerte || pctOkK > indFuerte.pct) indFuerte = { key:k, pct:pctOkK };
-        if (!indDebil  || pctOkK < indDebil.pct)  indDebil  = { key:k, pct:pctOkK };
-      });
-
-      html += `<div style="background:#f5f0e8;border:1px solid #d4a017;border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:10px;">
-        <div style="font-weight:700;margin-bottom:4px;color:#7a5800;">📊 Resumen del período</div>
-        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:4px;">
-          <span><strong>Rango:</strong> ${fmtFecha(primeraF)} al ${fmtFecha(ultimaF)}</span>
-          <span><strong>Clases:</strong> ${fechasAsist.size} con asistencia · ${fechasSeg.size} con seguimiento</span>
-          <span><strong>Alumnos:</strong> ${als.length} en el curso · ${alsEval} evaluados</span>
-        </div>
-        <div style="font-size:9px;color:#555;margin-top:4px;">
-          <strong>Asistencia general del curso:</strong> <strong style="color:${pctAsisCurso>=85?'#2d5e38':pctAsisCurso>=70?'#7a5800':'#8b1e10'};">${pctAsisCurso}%</strong> (${P_curso} P · ${A_curso} A · ${T_curso} T sobre ${tot_curso} registros)
-        </div>
-        ${totInd ? `<div style="display:flex;gap:4px;height:12px;border-radius:3px;overflow:hidden;margin:6px 0;background:#e0d8c8;">
-          ${pctOk>0?`<div style="flex:${pctOk};background:#4a7c59;color:white;font-size:8px;text-align:center;line-height:12px;">${pctOk>8?pctOk+'% ✓':''}</div>`:''}
-          ${pctEp>0?`<div style="flex:${pctEp};background:#d4a017;color:#1a1a2e;font-size:8px;text-align:center;line-height:12px;">${pctEp>8?pctEp+'% ~':''}</div>`:''}
-          ${pctNo>0?`<div style="flex:${pctNo};background:#c0392b;color:white;font-size:8px;text-align:center;line-height:12px;">${pctNo>8?pctNo+'% ✗':''}</div>`:''}
-        </div>` : ''}
-        ${totInd ? `<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:9px;color:#555;">
-          <span><strong style="color:#2d5e38;">✓ ${pctOk}% logrado</strong></span>
-          <span><strong style="color:#7a5800;">~ ${pctEp}% en proceso</strong></span>
-          <span><strong style="color:#8b1e10;">✗ ${pctNo}% no logrado</strong></span>
-          ${indFuerte&&indDebil&&indFuerte.key!==indDebil.key?`<span>Fortaleza: <strong>${indInfo(indFuerte.key).label}</strong> · A reforzar: <strong>${indInfo(indDebil.key).label}</strong></span>`:''}
-        </div>` : '<div style="font-size:9px;color:#888;">Sin registros de seguimiento en el período.</div>'}
-      </div>`;
 
       als.sort((a,b) => a.nombre.localeCompare(b.nombre));
 
-      html += `<table style="font-size:9px;"><thead><tr>
-        <th style="width:20px;">#</th>
-        <th style="min-width:130px;">Alumno</th>
-        <th style="text-align:center;width:48px;">% Asist.</th>
-        <th style="text-align:center;width:60px;">P·A·T</th>
-        <th style="text-align:center;width:32px;">Ev.</th>
-        ${INDS.map(k => { const info = indInfo(k); return `<th style="text-align:center;min-width:50px;" title="${info.label}">${info.emoji}<br><span style="font-size:7px;">${info.label.slice(0,7)}</span></th>`; }).join('')}
-        <th style="text-align:center;width:38px;">Tend.</th>
-        <th style="min-width:170px;">Última observación</th>
+      html += `<h2>${escCurso ? escCurso.nombre + ' · ' : ''}${curso.nombre} — ${mat.nombre}</h2>`;
+
+      // ─── CRITERIOS + PROPÓSITOS ARRIBA ───
+      html += `<div class="planilla-info">
+        <div style="font-weight:700;color:#1a1a2e;margin-bottom:4px;font-size:10px;">📋 Criterios de evaluación</div>
+        <div class="criterios-grid">
+          ${INDS.map(k => {
+            const info = indInfo(k);
+            return `<div class="criterio-item"><strong>${info.emoji} ${info.label}</strong>${info.desc ? ' — ' + info.desc : ''}</div>`;
+          }).join('')}
+        </div>`;
+
+      // Propósitos (temas con descripción, únicos)
+      const propositosVistos = new Set();
+      const propositos = [];
+      todasFechas.forEach(f => {
+        const k = curso.id + '_' + mat.id + '_' + f;
+        const t = state.temas[k];
+        if (t && t.descripcion && !propositosVistos.has(t.descripcion)) {
+          propositos.push(t.descripcion);
+          propositosVistos.add(t.descripcion);
+        }
+      });
+
+      if (propositos.length) {
+        html += `<div style="margin-top:8px;">
+          <div style="font-weight:700;color:#1a1a2e;font-size:10px;margin-bottom:3px;">🎯 Propósitos de la formación</div>
+          ${propositos.slice(0,6).map(p => `<div class="proposito-item">${p}</div>`).join('')}
+        </div>`;
+      }
+      html += `</div>`;
+
+      // ─── TABLA MATRICIAL PRINCIPAL (asistencia compacta + seguimiento) ───
+      html += `<table class="planilla-matriz"><thead><tr>
+        <th class="col-alumno">Alumno</th>
+        <th class="col-num">Pres.</th>
+        <th class="col-num">Aus.</th>
+        <th class="col-num">Tard.</th>
+        <th class="col-pct">% Asist.</th>
+        ${INDS.map(k => `<th class="col-ind" title="${indInfo(k).label}">${indInfo(k).emoji}<br><span style="font-size:6.5px;font-weight:400;">${indInfo(k).label.slice(0,7)}</span></th>`).join('')}
+        <th class="col-obs">Última observación</th>
       </tr></thead><tbody>`;
 
-      const sintesis = [];
+      const sintesisAlumnos = [];
 
-      als.forEach((al, i) => {
+      als.forEach(al => {
+        // Asistencia totalizada
         let P=0, A=0, T=0, totA=0;
-        fechasAsist.forEach(f => {
+        todasFechas.forEach(f => {
           const e = estadoAsist(al.id, curso.id, mat.id, f);
-          if (!e) return;
-          totA++;
-          if (e==='P') P++;
-          else if (e==='A') A++;
-          else if (e==='T') T++;
+          if (e) {
+            totA++;
+            if (e==='P') P++;
+            else if (e==='A') A++;
+            else if (e==='T') T++;
+          }
         });
         const pctAsist = totA ? Math.round((P+T)/totA*100) : null;
         const asistColor = pctAsist==null ? '#ccc' : pctAsist>=85 ? '#2d5e38' : pctAsist>=70 ? '#7a5800' : '#8b1e10';
 
+        // Seguimiento (balance por indicador)
         const regAl = state.seguimiento[al.id]?.[mat.id] || {};
-        const fechasSegAl = [...fechasSeg].filter(f => {
-          const r = regAl[f];
-          return r && (INDS.some(i2 => r[i2]) || (r.obs && r.obs.trim()));
-        }).sort();
-
         const balPorInd = {};
-        let sumP=0, sumT=0;
         INDS.forEach(k => {
           balPorInd[k] = { ok:0, ep:0, no:0 };
-          fechasSegAl.forEach(f => {
+          todasFechas.forEach(f => {
             const v = regAl[f]?.[k];
-            if (v==='ok') { balPorInd[k].ok++; sumP+=3; sumT++; }
-            else if (v==='ep') { balPorInd[k].ep++; sumP+=2; sumT++; }
-            else if (v==='no') { balPorInd[k].no++; sumP+=1; sumT++; }
+            if (v==='ok') balPorInd[k].ok++;
+            else if (v==='ep') balPorInd[k].ep++;
+            else if (v==='no') balPorInd[k].no++;
           });
         });
-        const prom = sumT ? sumP/sumT : 0;
-
-        let tendencia = '→', tendColor = '#888', tendLabel = 'estable';
-        if (fechasSegAl.length >= 2) {
-          const mitad = Math.ceil(fechasSegAl.length/2);
-          const primera = fechasSegAl.slice(0, mitad);
-          const segunda = fechasSegAl.slice(-mitad);
-          const promSec = (fs) => {
-            let p=0, t=0;
-            fs.forEach(f => INDS.forEach(k => {
-              const v = regAl[f]?.[k];
-              if (v==='ok'){p+=3;t++;} else if (v==='ep'){p+=2;t++;} else if (v==='no'){p+=1;t++;}
-            }));
-            return t ? p/t : 0;
-          };
-          const diff = promSec(segunda) - promSec(primera);
-          if (diff > 0.3) { tendencia='↗'; tendColor='#2d5e38'; tendLabel='mejora'; }
-          else if (diff < -0.3) { tendencia='↘'; tendColor='#8b1e10'; tendLabel='desciende'; }
-        }
-
-        const ultimaObs = fechasSegAl.slice().reverse().map(f => regAl[f]?.obs).find(o => o && o.trim());
 
         const chipInd = (b) => {
           const parts = [];
-          if (b.ok) parts.push(`<span style="color:#2d5e38;font-weight:700;">✓${b.ok}</span>`);
-          if (b.ep) parts.push(`<span style="color:#7a5800;font-weight:700;">~${b.ep}</span>`);
-          if (b.no) parts.push(`<span style="color:#8b1e10;font-weight:700;">✗${b.no}</span>`);
+          if (b.ok) parts.push(`<span style="color:#2d5e38;">✓${b.ok}</span>`);
+          if (b.ep) parts.push(`<span style="color:#7a5800;">~${b.ep}</span>`);
+          if (b.no) parts.push(`<span style="color:#8b1e10;">✗${b.no}</span>`);
           return parts.length ? parts.join(' ') : '<span style="color:#ccc;">—</span>';
         };
 
+        // Observaciones y última observación
+        const fechasSegAl = todasFechas.filter(f => {
+          const r = regAl[f];
+          return r && (INDS.some(i2 => r[i2]) || (r.obs && r.obs.trim()));
+        }).sort();
+        const obsList = fechasSegAl.map(f => ({ f:f, obs:regAl[f]?.obs })).filter(x => x.obs && x.obs.trim());
+        const ultimaObs = obsList.length ? obsList[obsList.length-1] : null;
+        const ultimaObsTxt = ultimaObs ? (ultimaObs.obs.length>110 ? ultimaObs.obs.slice(0,110)+'…' : ultimaObs.obs) : '';
+
         html += `<tr>
-          <td style="text-align:center;color:#888;">${i+1}</td>
-          <td style="font-weight:600;">${al.nombre}</td>
-          <td style="text-align:center;font-weight:700;color:${asistColor};">${pctAsist!=null?pctAsist+'%':'<span style="color:#ccc;">—</span>'}</td>
-          <td style="text-align:center;color:#555;font-size:8px;">${totA?P+'·'+A+'·'+T:'<span style="color:#ccc;">—</span>'}</td>
-          <td style="text-align:center;color:#555;">${fechasSegAl.length||'<span style="color:#ccc;">0</span>'}</td>
-          ${INDS.map(k => `<td style="text-align:center;">${chipInd(balPorInd[k])}</td>`).join('')}
-          <td style="text-align:center;font-size:13px;color:${tendColor};font-weight:700;" title="${tendLabel}">${fechasSegAl.length?tendencia:'<span style="color:#ccc;font-size:9px;">—</span>'}</td>
-          <td class="obs-cell" style="color:#333;font-style:normal;font-size:8.5px;">${ultimaObs ? (ultimaObs.length>110?ultimaObs.slice(0,110)+'…':ultimaObs) : '<span style="color:#ccc;">—</span>'}</td>
+          <td class="col-alumno">${al.nombre}</td>
+          <td class="col-num" style="color:#2d5e38;font-weight:700;">${P||'<span style="color:#ccc;">0</span>'}</td>
+          <td class="col-num" style="color:#8b1e10;font-weight:700;">${A||'<span style="color:#ccc;">0</span>'}</td>
+          <td class="col-num" style="color:#7a5800;font-weight:700;">${T||'<span style="color:#ccc;">0</span>'}</td>
+          <td class="col-pct" style="color:${asistColor};">${pctAsist!=null?pctAsist+'%':'—'}</td>
+          ${INDS.map(k => `<td class="col-ind">${chipInd(balPorInd[k])}</td>`).join('')}
+          <td class="col-obs">${ultimaObsTxt ? '<span style="color:#7a5800;font-size:7.5px;font-weight:600;">'+fechaCorta(ultimaObs.f)+':</span> '+ultimaObsTxt : '<span style="color:#ccc;">—</span>'}</td>
         </tr>`;
 
-        sintesis.push({ al:al, pctAsist:pctAsist, cantSeg:fechasSegAl.length, promedio:prom, tendencia:tendLabel });
+        let sumP=0, sumT=0;
+        INDS.forEach(k => {
+          fechasSegAl.forEach(f => {
+            const v = regAl[f]?.[k];
+            if (v==='ok'){sumP+=3;sumT++;} else if (v==='ep'){sumP+=2;sumT++;} else if (v==='no'){sumP+=1;sumT++;}
+          });
+        });
+        sintesisAlumnos.push({ al:al, pctAsist:pctAsist, obsList:obsList, promedio:sumT?sumP/sumT:0, cantSeg:fechasSegAl.length });
       });
 
       html += `</tbody></table>`;
 
-      html += `<div style="font-size:8px;color:#888;margin:4px 0 10px;">
-        <strong>Columnas:</strong> % Asist. = (presentes+tardes)/total ·
-        P·A·T = Presentes·Ausentes·Tardes ·
-        Ev. = clases con seguimiento evaluado ·
-        Chips: ✓ logrado / ~ en proceso / ✗ no logrado ·
-        Tend.: ↗ mejora · → estable · ↘ desciende
+      // ─── LEYENDA ───
+      html += `<div class="leyenda-bar">
+        <span><strong>Asistencia:</strong> Pres. = Presentes · Aus. = Ausentes · Tard. = Tardes · % Asist. = (P+T)/total</span>
+        <span><strong>Indicadores:</strong> ✓ Logrado · ~ En proceso · ✗ No logrado</span>
       </div>`;
 
-      // Temas trabajados
+      // ─── FECHAS MARCADAS (temas / hitos) ───
       const temasList = [];
-      fechasOrd.forEach(f => {
+      todasFechas.forEach(f => {
         const k = curso.id + '_' + mat.id + '_' + f;
         const t = state.temas[k];
-        if (t && t.titulo) temasList.push({ f:f, titulo:t.titulo, desc:t.descripcion });
+        if (t && t.titulo) temasList.push({ f:f, titulo:t.titulo });
       });
 
       if (temasList.length) {
-        html += `<div style="margin-top:8px;font-size:9px;">
-          <div style="font-weight:700;color:#1a1a2e;margin-bottom:4px;">📖 Temas / propósitos trabajados</div>
-          <div style="display:grid;grid-template-columns:70px 1fr;gap:2px 8px;">
-            ${temasList.map(t => `<div style="color:#7a5800;font-weight:600;">${fmtFecha(t.f)}</div><div>${t.titulo}${t.desc?' — <em style="color:#666;">'+t.desc+'</em>':''}</div>`).join('')}
+        html += `<div style="margin-top:6px;">
+          <div style="font-weight:700;font-size:10px;margin-bottom:3px;">📖 Temas trabajados</div>
+          <div class="planilla-notas">
+            ${temasList.map(t => `<div class="fecha-marc">${fechaCorta(t.f)}</div><div>${t.titulo}</div>`).join('')}
           </div>
         </div>`;
       }
 
-      // Análisis pedagógico
-      const conSeg = sintesis.filter(s => s.cantSeg > 0);
-      const destacados = conSeg.filter(s => s.promedio >= 2.5).sort((a,b) => b.promedio - a.promedio);
-      const enMejora = conSeg.filter(s => s.tendencia === 'mejora');
-      const atencionSeg = conSeg.filter(s => s.promedio < 1.8 || (s.tendencia === 'desciende' && s.cantSeg >= 3));
-      const asistBaja = sintesis.filter(s => s.pctAsist != null && s.pctAsist < 70);
+      // ─── OBSERVACIONES DESTACADAS POR ALUMNO ───
+      const obsPorAlumno = sintesisAlumnos.filter(s => s.obsList.length > 0);
+      if (obsPorAlumno.length) {
+        html += `<div style="margin-top:10px;">
+          <div style="font-weight:700;font-size:10px;margin-bottom:3px;">📝 Observaciones registradas</div>
+          <table style="font-size:8.5px;">
+            <thead><tr><th style="width:130px;">Alumno</th><th style="width:55px;">Fecha</th><th>Observación</th></tr></thead>
+            <tbody>
+              ${obsPorAlumno.slice(0,25).map(s =>
+                s.obsList.map((o,i) => `<tr>
+                  <td>${i===0 ? '<strong>'+s.al.nombre+'</strong>' : ''}</td>
+                  <td style="color:#7a5800;font-weight:600;">${fechaCorta(o.f)}</td>
+                  <td style="text-align:left;">${o.obs}</td>
+                </tr>`).join('')
+              ).join('')}
+            </tbody>
+          </table>
+        </div>`;
+      }
 
-      if (conSeg.length || asistBaja.length) {
-        html += `<div style="margin-top:10px;padding:8px 10px;background:#fafaf7;border:1px solid #e0d8c8;border-radius:6px;font-size:9.5px;">
-          <div style="font-weight:700;color:#1a1a2e;margin-bottom:5px;font-size:10.5px;">🎓 Análisis pedagógico del curso</div>
-          ${destacados.length ? `<div style="margin-bottom:3px;"><strong style="color:#2d5e38;">✓ Recorrido sólido</strong> (${destacados.length}): ${destacados.slice(0,10).map(s=>s.al.nombre).join(', ')}${destacados.length>10?'…':''}.</div>` : ''}
-          ${enMejora.length ? `<div style="margin-bottom:3px;"><strong style="color:#7a5800;">↗ Evolución positiva</strong> (${enMejora.length}): ${enMejora.slice(0,10).map(s=>s.al.nombre).join(', ')}${enMejora.length>10?'…':''}.</div>` : ''}
-          ${atencionSeg.length ? `<div style="margin-bottom:3px;"><strong style="color:#8b1e10;">⚠️ Requieren acompañamiento pedagógico</strong> (${atencionSeg.length}): ${atencionSeg.slice(0,10).map(s=>s.al.nombre).join(', ')}${atencionSeg.length>10?'…':''}.</div>` : ''}
-          ${asistBaja.length ? `<div style="margin-bottom:3px;"><strong style="color:#8b1e10;">⚠️ Asistencia baja (&lt;70%)</strong> (${asistBaja.length}): ${asistBaja.slice(0,10).map(s=>s.al.nombre+' ('+s.pctAsist+'%)').join(', ')}${asistBaja.length>10?'…':''}.</div>` : ''}
-          ${indFuerte && indDebil && indFuerte.key !== indDebil.key ? `<div style="margin-top:4px;color:#555;">El curso muestra <strong>mayor fortaleza en ${indInfo(indFuerte.key).label}</strong> (${Math.round(indFuerte.pct*100)}%) y <strong>mayor dificultad en ${indInfo(indDebil.key).label}</strong> (${Math.round(indDebil.pct*100)}%).</div>` : ''}
+      // ─── CONCEPTOS DE TRAYECTORIA (referencia pedagógica) ───
+      html += `<div class="planilla-conceptos">
+        <div style="font-weight:700;font-size:9.5px;margin-bottom:4px;color:#7a5800;">Referencias pedagógicas para interpretar el seguimiento</div>
+        <div class="planilla-conceptos-item"><strong style="color:#2d5e38;">✓ Logrado:</strong> El estudiante lleva adelante el trabajo áulico y logra apropiarse de los saberes propuestos.</div>
+        <div class="planilla-conceptos-item"><strong style="color:#7a5800;">~ En proceso:</strong> En ocasiones el estudiante lleva adelante el trabajo áulico pero no logra apropiarse plenamente de los saberes propuestos.</div>
+        <div class="planilla-conceptos-item"><strong style="color:#8b1e10;">✗ No logrado:</strong> El estudiante no lleva adelante el trabajo áulico por lo que no logra apropiarse de los saberes propuestos.</div>
+        <div class="planilla-conceptos-item"><strong style="color:#555;">Trayectoria interrumpida:</strong> El estudiante no tiene continuidad en clase por reiteradas inasistencias.</div>
+      </div>`;
+
+      // ─── ANÁLISIS PEDAGÓGICO FINAL ───
+      const conSeg = sintesisAlumnos.filter(s => s.cantSeg > 0);
+      const destacados = conSeg.filter(s => s.promedio >= 2.5).map(s => s.al.nombre);
+      const requierenAtencion = conSeg.filter(s => s.promedio < 1.8).map(s => s.al.nombre);
+      const asistBaja = sintesisAlumnos.filter(s => s.pctAsist != null && s.pctAsist < 70).map(s => s.al.nombre + ' (' + s.pctAsist + '%)');
+      const trayectInterrumpida = sintesisAlumnos.filter(s => s.pctAsist != null && s.pctAsist < 50).map(s => s.al.nombre);
+
+      if (destacados.length || requierenAtencion.length || asistBaja.length) {
+        html += `<div style="margin-top:8px;padding:8px 10px;background:#fafaf7;border:1px solid #e0d8c8;border-radius:4px;font-size:9px;">
+          <div style="font-weight:700;font-size:10px;margin-bottom:4px;">🎓 Síntesis pedagógica del curso</div>
+          ${destacados.length ? `<div style="margin:2px 0;"><strong style="color:#2d5e38;">Alumnos con recorrido sólido:</strong> ${destacados.join(', ')}.</div>` : ''}
+          ${requierenAtencion.length ? `<div style="margin:2px 0;"><strong style="color:#8b1e10;">Requieren acompañamiento pedagógico:</strong> ${requierenAtencion.join(', ')}.</div>` : ''}
+          ${asistBaja.length ? `<div style="margin:2px 0;"><strong style="color:#8b1e10;">Asistencia baja (&lt;70%):</strong> ${asistBaja.join(', ')}.</div>` : ''}
+          ${trayectInterrumpida.length ? `<div style="margin:2px 0;"><strong style="color:#8b1e10;">Trayectoria interrumpida por inasistencias (&lt;50%):</strong> ${trayectInterrumpida.join(', ')}.</div>` : ''}
         </div>`;
       }
 
@@ -5653,7 +5661,7 @@ function imprimirCombinado() {
   }
 
   _abrirVentanaPrint(html);
-  showToast('🖨️ Preparando informe combinado…');
+  showToast('🖨️ Preparando planilla combinada…');
 }
 
 // ── Genérico (para mapa u otras secciones) ───────────────────────
